@@ -1,0 +1,63 @@
+{
+  "createdAt": "2025-10-21T16:19:31.845Z",
+  "network": "testnet",
+  "token": {
+    "id": "0.0.7102487",
+    "name": "TARWIJ MAD Stablecoin",
+    "symbol": "MADT",
+    "decimals": 2,
+    "initialSupply": 0,
+    "treasuryAccount": "0.0.6976406",
+    "transactionId": "0.0.6976406@1761063565.916618652"
+  },
+  "keys": {
+    "admin": {
+      "publicKey": "302d300706052b8104000a0322000372da3aef21a75a5dc5e7fa9e46c8be50de93b87a188430755d32704cf0fb1854",
+      "privateKey": "3030020100300706052b8104000a042204202a5ae20014defe90191844dd4a9f86af8368680b514ed26c51b588ee34de4b05",
+      "description": "Full control over the token (can update all keys)"
+    },
+    "supply": {
+      "publicKey": "302d300706052b8104000a0322000398250f9042bf4abe49b6436095c02a005d04fee0c8b65220d28ffa7d6ecfa635",
+      "privateKey": "3030020100300706052b8104000a042204202b7161253af77a8c29aff243c08e99800c15e793159a762a1a3742488a8b4bc0",
+      "description": "Mint new tokens and burn existing tokens"
+    },
+    "freeze": {
+      "publicKey": "302d300706052b8104000a032200037c8a09880569e11f95714d46ee0e44444cade7a57845043fffb938be64de06a6",
+      "privateKey": "3030020100300706052b8104000a04220420345d19fc89271575ca513d70a7fa0e7f26fae0b51bd5408e3a29688e858bb68c",
+      "description": "Freeze and unfreeze token transfers for specific accounts"
+    },
+    "wipe": {
+      "publicKey": "302d300706052b8104000a03220002f89d3c64d28e64efc1bdc42e8478793a1209bb19cebae781d1e92316a13f3df5",
+      "privateKey": "3030020100300706052b8104000a0422042034bc4f2e0b8d73e9cb033421a04afc57b430d2dd39d8a94c1aa835e17a8df7f5",
+      "description": "Wipe tokens from an account (reduce balance to zero)"
+    },
+    "kyc": {
+      "publicKey": "302d300706052b8104000a0322000307595053e07841333bb3238e23c36e8b0c615eb4c1237ea66dd1e2c1e7f2d75a",
+      "privateKey": "3030020100300706052b8104000a04220420597bf274fa67848c6e100847924a38b1d50a57785e3954342e739a1bbb79ed6a",
+      "description": "Grant or revoke KYC status for accounts"
+    },
+    "pause": {
+      "publicKey": "302d300706052b8104000a03220003833f9c0b681403111fc868ca1f096af3b147dce0450728a7eba9051a6f61be7b",
+      "privateKey": "3030020100300706052b8104000a042204200fec7dfaf854697a4659a29c6664927698702b2ec7cf2cfa0de57551b4904df3",
+      "description": "Pause and unpause all token operations"
+    },
+    "feeSchedule": {
+      "publicKey": "302d300706052b8104000a032200031f6e8c1199fb2e9b1a2444f31f0e00be072426ee7f1b8f3a9e8b31fa0e98f8f1",
+      "privateKey": "3030020100300706052b8104000a04220420ff99ff2d12b076d9dd9603201f6f2c5445c86a78bc5bccf66d43e145d37c0f00",
+      "description": "Update custom fee schedules"
+    }
+  },
+  "usage": {
+    "mint": "Use PLATFORM_STABLECOIN_SUPPLY_KEY to mint tokens for wage advances",
+    "burn": "Use PLATFORM_STABLECOIN_SUPPLY_KEY to burn tokens when needed",
+    "freeze": "Use PLATFORM_STABLECOIN_FREEZE_KEY to freeze suspicious accounts",
+    "wipe": "Use PLATFORM_STABLECOIN_WIPE_KEY to remove tokens from frozen accounts",
+    "kyc": "Use PLATFORM_STABLECOIN_KYC_KEY to grant KYC to verified users",
+    "pause": "Use PLATFORM_STABLECOIN_PAUSE_KEY in emergency situations"
+  },
+  "security": {
+    "warning": "KEEP ALL PRIVATE KEYS SECURE AND NEVER COMMIT TO VERSION CONTROL",
+    "recommendation": "Store keys in secure key management system (e.g., AWS KMS, HashiCorp Vault)",
+    "backup": "Create encrypted backups of all keys"
+  }
+}

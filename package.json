@@ -1,0 +1,41 @@
+{
+  "name": "my-hedera-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "NODE_OPTIONS='--inspect' next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start",
+    "lint": "eslint",
+    "test:token": "tsx tests/createEnterpriseToken.test.ts",
+    "test:pause": "tsx tests/pauseToken.test.ts",
+    "test:unpause": "tsx tests/unpauseToken.test.ts",
+    "test:wage-advance": "tsx tests/wageAdvanceWorkflow.test.ts",
+    "test:wage-reject": "tsx tests/wageAdvanceRejection.test.ts"
+  },
+  "dependencies": {
+    "@hashgraph/sdk": "^2.75.0",
+    "@reduxjs/toolkit": "^2.9.1",
+    "dotenv": "^16.4.5",
+    "hashconnect": "^3.0.14",
+    "next": "15.5.6",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-redux": "^9.2.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/forms": "^0.5.7",
+    "@types/node": "^20.19.22",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.6",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5"
+  }
+}
