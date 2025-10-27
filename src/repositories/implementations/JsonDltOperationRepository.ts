@@ -10,8 +10,7 @@ import { dataService } from "../../services/data/dataService";
 
 export class JsonDltOperationRepository implements IDltOperationRepository {
   async findById(id: string): Promise<DltOperation | undefined> {
-    // Note: dataService doesn't have getDltOperation method yet
-    throw new Error("Find DLT operation by ID not implemented in dataService");
+    return dataService.getDltOperation(id);
   }
 
   async findByEnterprise(enterpriseId: string): Promise<DltOperation[]> {
@@ -19,27 +18,24 @@ export class JsonDltOperationRepository implements IDltOperationRepository {
   }
 
   async findByToken(tokenId: string): Promise<DltOperation[]> {
-    // Note: dataService doesn't have this method yet
-    throw new Error("Find by token not implemented in dataService");
+    return dataService.getDltOperationsByToken(tokenId);
   }
 
   async findByUser(userId: string): Promise<DltOperation[]> {
-    // Note: dataService doesn't have this method yet
-    throw new Error("Find by user not implemented in dataService");
+    return dataService.getDltOperationsByUser(userId);
   }
 
   async findByType(type: string): Promise<DltOperation[]> {
-    // Note: dataService doesn't have this method yet
-    throw new Error("Find by type not implemented in dataService");
+    return dataService.getDltOperationsByType(type);
   }
 
   async findAll(): Promise<DltOperation[]> {
-    // Note: dataService doesn't have getAllDltOperations method yet
-    throw new Error("Get all operations not implemented in dataService");
+    return dataService.getAllDltOperations();
   }
 
   async create(operation: DltOperation): Promise<DltOperation> {
-    return dataService.createDltOperation(operation);
+    // Pass the full operation object including id to preserve it
+    return dataService.createDltOperation(operation as any);
   }
 
   async update(
@@ -50,8 +46,7 @@ export class JsonDltOperationRepository implements IDltOperationRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    // Note: dataService doesn't have delete method yet
-    throw new Error("Delete operation not implemented in dataService");
+    return dataService.deleteDltOperation(id);
   }
 }
 

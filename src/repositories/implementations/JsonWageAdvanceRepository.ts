@@ -41,7 +41,8 @@ export class JsonWageAdvanceRepository implements IWageAdvanceRepository {
   }
 
   async create(request: WageAdvanceRequest): Promise<WageAdvanceRequest> {
-    return dataService.createWageAdvanceRequest(request);
+    // Pass the full request object including id to preserve it
+    return dataService.createWageAdvanceRequest(request as any);
   }
 
   async update(

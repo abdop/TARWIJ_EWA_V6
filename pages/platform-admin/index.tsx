@@ -1,6 +1,5 @@
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useRouter } from 'next/router';
 import { RootState } from '../../src/store';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
@@ -10,15 +9,63 @@ const HashConnectButton = dynamic(
   { ssr: false }
 );
 
-export default function PlatformAdminDashboard() {
-  const router = useRouter();
-  const { user, accountId, isConnected } = useSelector((state: RootState) => state.hashconnect);
+const AddEnterpriseModal = dynamic(
+  () => import('../../src/components/AddEnterpriseModal'),
+  { ssr: false }
+);
 
-  useEffect(() => {
-    if (!isConnected) {
-      router.push('/');
+const EnterpriseList = dynamic(
+  () => import('../../src/components/EnterpriseList'),
+  { ssr: false }
+);
+
+export default function PlatformAdminDashboard() {
+  const { user, isConnected } = useSelector((state: RootState) => state.hashconnect);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
+
+  const handleCreateEnterprise = async (enterpriseInfo: any, users: any[]) => {
+    setIsSubmitting(true);
+    try {
+      // All sensitive configuration is handled on the backend
+      const response = await fetch('/api/enterprise/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          enterpriseInfo,
+          users,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNotification({
+          type: 'success',
+          message: `Enterprise "${enterpriseInfo.name}" created successfully!`,
+        });
+        setIsModalOpen(false);
+        // Refresh the enterprise list
+        window.location.reload();
+      } else {
+        throw new Error(data.details || data.error || 'Failed to create enterprise');
+      }
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to create enterprise',
+      });
+      throw error;
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [isConnected, router]);
+  };
 
   return (
     <>
@@ -69,22 +116,58 @@ export default function PlatformAdminDashboard() {
             <div className="flex-1 p-10">
               <div className="max-w-6xl mx-auto space-y-8">
 
-              <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-background-light/10 border border-gray-700 rounded-xl p-6">
-                  <p className="text-sm text-gray-400">Total Enterprises</p>
-                  <p className="text-4xl font-bold text-white mt-3">12</p>
+              {notification && (
+                <div
+                  className={`${
+                    notification.type === 'success'
+                      ? 'bg-green-500/10 border-green-500/50 text-green-400'
+                      : 'bg-red-500/10 border-red-500/50 text-red-400'
+                  } border rounded-xl p-4 flex items-center justify-between`}
+                >
+                  <p>{notification.message}</p>
+                  <button
+                    onClick={() => setNotification(null)}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <CloseIcon className="w-5 h-5" />
+                  </button>
                 </div>
-                <div className="bg-background-light/10 border border-gray-700 rounded-xl p-6">
-                  <p className="text-sm text-gray-400">Active Users</p>
-                  <p className="text-4xl font-bold text-white mt-3">248</p>
+              )}
+
+              {!isConnected ? (
+                <div className="bg-background-light/10 border border-gray-700 rounded-xl p-8 text-center">
+                  <h3 className="text-xl font-semibold text-white mb-4">Connect Your Wallet</h3>
+                  <p className="text-gray-400 mb-6">
+                    Please connect your HashPack wallet to access platform admin features.
+                  </p>
+                  <HashConnectButton />
                 </div>
-                <div className="bg-background-light/10 border border-gray-700 rounded-xl p-6">
-                  <p className="text-sm text-gray-400">Total Tokens</p>
-                  <p className="text-4xl font-bold text-white mt-3">1.2M</p>
-                </div>
-              </section>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-white">Enterprises</h2>
+                    <button
+                      onClick={() => setIsModalOpen(true)}
+                      className="px-6 py-2 bg-primary rounded-lg text-white hover:bg-primary/90 transition-colors flex items-center gap-2"
+                    >
+                      <PlusIcon className="w-5 h-5" />
+                      <span>Add New Enterprise</span>
+                    </button>
+                  </div>
+
+                  <EnterpriseList />
+                </>
+              )}
               </div>
             </div>
+
+            {isModalOpen && (
+              <AddEnterpriseModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSubmit={handleCreateEnterprise}
+              />
+            )}
           </main>
         </div>
       </div>
@@ -104,6 +187,22 @@ function SettingsIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
       <path d="M19.14 12.94a7.986 7.986 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.94 7.94 0 0 0-1.62-.94l-.36-2.54A.5.5 0 0 0 14.9 2h-3.8a.5.5 0 0 0-.5.42L10.24 4.9a7.94 7.94 0 0 0-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L3.7 8.42a.5.5 0 0 0 .12.64l2.03 1.58a7.986 7.986 0 0 0 0 1.88l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.37 1.05.68 1.62.94l.36 2.54a.5.5 0 0 0 .5.42h3.8a.5.5 0 0 0 .5-.42l.36-2.54c.57-.26 1.12-.57 1.62-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64ZM12 15.5A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5Z" />
+    </svg>
+  );
+}
+
+function PlusIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+    </svg>
+  );
+}
+
+function CloseIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
     </svg>
   );
 }

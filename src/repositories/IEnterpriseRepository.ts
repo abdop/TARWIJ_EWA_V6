@@ -9,6 +9,7 @@ export interface Enterprise {
   symbol: string;
   address: string;
   contactEmail: string;
+  bankAccount?: string;
   industry: string;
 }
 

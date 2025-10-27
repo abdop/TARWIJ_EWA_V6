@@ -15,24 +15,19 @@ export class JsonEnterpriseRepository implements IEnterpriseRepository {
   }
 
   async create(enterprise: Enterprise): Promise<Enterprise> {
-    // Note: dataService doesn't have create method yet
-    // This would need to be implemented in dataService
-    throw new Error("Create enterprise not implemented in dataService");
+    // Pass the full enterprise object including id to preserve it
+    return dataService.createEnterprise(enterprise as any);
   }
 
   async update(
     id: string,
     updates: Partial<Enterprise>
   ): Promise<Enterprise | undefined> {
-    // Note: dataService doesn't have update method yet
-    // This would need to be implemented in dataService
-    throw new Error("Update enterprise not implemented in dataService");
+    return dataService.updateEnterprise(id, updates);
   }
 
   async delete(id: string): Promise<boolean> {
-    // Note: dataService doesn't have delete method yet
-    // This would need to be implemented in dataService
-    throw new Error("Delete enterprise not implemented in dataService");
+    return dataService.deleteEnterprise(id);
   }
 }
 

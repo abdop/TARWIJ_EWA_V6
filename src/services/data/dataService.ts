@@ -1,5 +1,5 @@
-import { promises as fs } from "fs";
-import path from "path";
+import { IDataSource } from "./dataSource";
+import { SingleFileDataSource } from "./singleFileDataSource";
 
 export interface Enterprise {
   id: string;
@@ -15,7 +15,7 @@ export interface User {
   name: string;
   email: string;
   role: string;
-  category: "ent_admin" | "decider" | "employee";
+  category: "ent_admin" | "decider" | "employee" | "platform_admin";
   entrepriseId: string;
   hedera_id: string;
 }
@@ -88,197 +88,182 @@ export interface DataStructure {
 }
 
 class DataService {
-  private dataPath: string;
-  private data: DataStructure | null = null;
-  private lastModified: number = 0;
+  // Data sources using abstraction layer
+  private enterpriseDataSource: IDataSource<Enterprise>;
+  private userDataSource: IDataSource<User>;
+  private tokenDataSource: IDataSource<EnterpriseToken>;
+  private dltOperationDataSource: IDataSource<DltOperation>;
+  private wageAdvanceDataSource: IDataSource<WageAdvanceRequest>;
 
   constructor() {
-    this.dataPath = path.join(process.cwd(), "data.json");
-  }
-
-  private async loadData(): Promise<void> {
-    try {
-      const fileContent = await fs.readFile(this.dataPath, "utf-8");
-      this.data = JSON.parse(fileContent);
-    } catch (error) {
-      console.error("Error loading data.json:", error);
-      throw new Error(`Failed to load data: ${error}`);
-    }
-  }
-
-  private async saveData(): Promise<void> {
-    if (!this.data) {
-      throw new Error("No data to save");
-    }
-    try {
-      await fs.writeFile(
-        this.dataPath,
-        JSON.stringify(this.data, null, 2),
-        "utf-8"
-      );
-    } catch (error) {
-      console.error("Error saving data.json:", error);
-      throw new Error(`Failed to save data: ${error}`);
-    }
-  }
-
-  private async ensureDataLoaded(): Promise<void> {
-    try {
-      // Check if file has been modified since last load
-      const stats = await fs.stat(this.dataPath);
-      const fileModified = stats.mtimeMs;
-      
-      // Reload if file changed or data not loaded
-      if (!this.data || fileModified > this.lastModified) {
-        await this.loadData();
-        this.lastModified = fileModified;
-      }
-    } catch (error) {
-      // If stat fails, try to load anyway
-      if (!this.data) {
-        await this.loadData();
-      }
-    }
-  }
-
-  // Public method to clear cache (useful for testing)
-  public clearCache(): void {
-    this.data = null;
+    // Initialize with single file data sources using data.json
+    // Each data source manages a different collection within the same file
+    this.enterpriseDataSource = new SingleFileDataSource<Enterprise>("entreprises");
+    this.userDataSource = new SingleFileDataSource<User>("users");
+    this.tokenDataSource = new SingleFileDataSource<EnterpriseToken>("entreprise_tokens");
+    this.dltOperationDataSource = new SingleFileDataSource<DltOperation>("dlt_operations");
+    this.wageAdvanceDataSource = new SingleFileDataSource<WageAdvanceRequest>("wage_advance_requests");
   }
 
   // Enterprise methods
   async getEnterprise(id: string): Promise<Enterprise | undefined> {
-    await this.ensureDataLoaded();
-    return this.data!.entreprises.find((e) => e.id === id);
+    return this.enterpriseDataSource.getById(id);
   }
 
   async getAllEnterprises(): Promise<Enterprise[]> {
-    await this.ensureDataLoaded();
-    return this.data!.entreprises;
+    return this.enterpriseDataSource.getAll();
+  }
+
+  async createEnterprise(enterprise: Omit<Enterprise, "id">): Promise<Enterprise> {
+    return this.enterpriseDataSource.create(enterprise);
+  }
+
+  async updateEnterprise(id: string, updates: Partial<Enterprise>): Promise<Enterprise | undefined> {
+    return this.enterpriseDataSource.update(id, updates);
+  }
+
+  async deleteEnterprise(id: string): Promise<boolean> {
+    return this.enterpriseDataSource.delete(id);
   }
 
   // User methods
   async getUser(id: string): Promise<User | undefined> {
-    await this.ensureDataLoaded();
-    return this.data!.users.find((u) => u.id === id);
+    return this.userDataSource.getById(id);
   }
 
   async getUsersByEnterprise(enterpriseId: string): Promise<User[]> {
-    await this.ensureDataLoaded();
-    return this.data!.users.filter((u) => u.entrepriseId === enterpriseId);
+    return this.userDataSource.query((u) => u.entrepriseId === enterpriseId);
   }
 
   async getUsersByCategory(
     enterpriseId: string,
     category: string
   ): Promise<User[]> {
-    await this.ensureDataLoaded();
-    return this.data!.users.filter(
+    return this.userDataSource.query(
       (u) => u.entrepriseId === enterpriseId && u.category === category
     );
   }
 
+  async createUser(user: Omit<User, "id">): Promise<User> {
+    return this.userDataSource.create(user);
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    return this.userDataSource.update(id, updates);
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    return this.userDataSource.delete(id);
+  }
+
+  async getUserByHederaId(hederaId: string): Promise<User | undefined> {
+    const users = await this.userDataSource.query((u) => u.hedera_id === hederaId);
+    return users[0];
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return this.userDataSource.getAll();
+  }
+
   // Enterprise Token methods
   async createEnterpriseToken(
-    token: EnterpriseToken
+    token: Omit<EnterpriseToken, "id">
   ): Promise<EnterpriseToken> {
-    await this.ensureDataLoaded();
-    this.data!.entreprise_tokens.push(token);
-    await this.saveData();
-    return token;
+    return this.tokenDataSource.create(token);
   }
 
   async getEnterpriseToken(
     tokenId: string
   ): Promise<EnterpriseToken | undefined> {
-    await this.ensureDataLoaded();
-    return this.data!.entreprise_tokens.find((t) => t.tokenId === tokenId);
+    const tokens = await this.tokenDataSource.query((t) => t.tokenId === tokenId);
+    return tokens[0];
   }
 
   async getEnterpriseTokenByEnterpriseId(
     enterpriseId: string
   ): Promise<EnterpriseToken | undefined> {
-    await this.ensureDataLoaded();
-    return this.data!.entreprise_tokens.find(
+    const tokens = await this.tokenDataSource.query(
       (t) => t.entrepriseId === enterpriseId
     );
+    return tokens[0];
   }
 
   async updateEnterpriseToken(
-    tokenId: string,
+    id: string,
     updates: Partial<EnterpriseToken>
   ): Promise<EnterpriseToken | undefined> {
-    await this.ensureDataLoaded();
-    const index = this.data!.entreprise_tokens.findIndex(
-      (t) => t.tokenId === tokenId
-    );
-    if (index === -1) {
-      return undefined;
-    }
-    this.data!.entreprise_tokens[index] = {
-      ...this.data!.entreprise_tokens[index],
-      ...updates,
-    };
-    await this.saveData();
-    return this.data!.entreprise_tokens[index];
+    return this.tokenDataSource.update(id, updates);
+  }
+
+  async deleteEnterpriseToken(id: string): Promise<boolean> {
+    return this.tokenDataSource.delete(id);
+  }
+
+  async getAllEnterpriseTokens(): Promise<EnterpriseToken[]> {
+    return this.tokenDataSource.getAll();
   }
 
   // DLT Operation methods
-  async createDltOperation(operation: DltOperation): Promise<DltOperation> {
-    await this.ensureDataLoaded();
-    this.data!.dlt_operations.push(operation);
-    await this.saveData();
-    return operation;
+  async createDltOperation(operation: Omit<DltOperation, "id">): Promise<DltOperation> {
+    return this.dltOperationDataSource.create(operation);
   }
 
   async updateDltOperation(
     id: string,
     updates: Partial<DltOperation>
   ): Promise<DltOperation | undefined> {
-    await this.ensureDataLoaded();
-    const index = this.data!.dlt_operations.findIndex((op) => op.id === id);
-    if (index === -1) {
-      return undefined;
-    }
-    this.data!.dlt_operations[index] = {
-      ...this.data!.dlt_operations[index],
-      ...updates,
-    };
-    await this.saveData();
-    return this.data!.dlt_operations[index];
+    return this.dltOperationDataSource.update(id, updates);
   }
 
   async getDltOperationsByEnterprise(
     enterpriseId: string
   ): Promise<DltOperation[]> {
-    await this.ensureDataLoaded();
-    return this.data!.dlt_operations.filter(
+    return this.dltOperationDataSource.query(
       (op) => op.entrepriseId === enterpriseId
     );
   }
 
+  async getAllDltOperations(): Promise<DltOperation[]> {
+    return this.dltOperationDataSource.getAll();
+  }
+
+  async getDltOperation(id: string): Promise<DltOperation | undefined> {
+    return this.dltOperationDataSource.getById(id);
+  }
+
+  async getDltOperationsByToken(tokenId: string): Promise<DltOperation[]> {
+    return this.dltOperationDataSource.query((op) => op.tokenId === tokenId);
+  }
+
+  async getDltOperationsByUser(userId: string): Promise<DltOperation[]> {
+    return this.dltOperationDataSource.query((op) => op.userId === userId);
+  }
+
+  async getDltOperationsByType(type: string): Promise<DltOperation[]> {
+    return this.dltOperationDataSource.query((op) => op.type === type);
+  }
+
+  async deleteDltOperation(id: string): Promise<boolean> {
+    return this.dltOperationDataSource.delete(id);
+  }
+
   // Wage Advance Request methods
   async createWageAdvanceRequest(
-    request: WageAdvanceRequest
+    request: Omit<WageAdvanceRequest, "id">
   ): Promise<WageAdvanceRequest> {
-    await this.ensureDataLoaded();
-    this.data!.wage_advance_requests.push(request);
-    await this.saveData();
-    return request;
+    return this.wageAdvanceDataSource.create(request);
   }
 
   async getWageAdvanceRequest(
     id: string
   ): Promise<WageAdvanceRequest | undefined> {
-    await this.ensureDataLoaded();
-    return this.data!.wage_advance_requests.find((req) => req.id === id);
+    return this.wageAdvanceDataSource.getById(id);
   }
 
   async getWageAdvanceRequestsByEmployee(
     employeeId: string
   ): Promise<WageAdvanceRequest[]> {
-    await this.ensureDataLoaded();
-    return this.data!.wage_advance_requests.filter(
+    return this.wageAdvanceDataSource.query(
       (req) => req.employeeId === employeeId
     );
   }
@@ -286,8 +271,7 @@ class DataService {
   async getWageAdvanceRequestsByEnterprise(
     enterpriseId: string
   ): Promise<WageAdvanceRequest[]> {
-    await this.ensureDataLoaded();
-    return this.data!.wage_advance_requests.filter(
+    return this.wageAdvanceDataSource.query(
       (req) => req.entrepriseId === enterpriseId
     );
   }
@@ -295,48 +279,28 @@ class DataService {
   async getWageAdvanceRequestsByStatus(
     status: string
   ): Promise<WageAdvanceRequest[]> {
-    await this.ensureDataLoaded();
-    return this.data!.wage_advance_requests.filter(
+    return this.wageAdvanceDataSource.query(
       (req) => req.status === status
     );
   }
 
   async getAllWageAdvanceRequests(): Promise<WageAdvanceRequest[]> {
-    await this.ensureDataLoaded();
-    return this.data!.wage_advance_requests;
+    return this.wageAdvanceDataSource.getAll();
   }
 
   async updateWageAdvanceRequest(
     id: string,
     updates: Partial<WageAdvanceRequest>
   ): Promise<WageAdvanceRequest | undefined> {
-    await this.ensureDataLoaded();
-    const index = this.data!.wage_advance_requests.findIndex(
-      (req) => req.id === id
-    );
-    if (index === -1) {
-      return undefined;
-    }
-    this.data!.wage_advance_requests[index] = {
-      ...this.data!.wage_advance_requests[index],
+    const updatedRequest = await this.wageAdvanceDataSource.update(id, {
       ...updates,
       updatedAt: new Date().toISOString(),
-    };
-    await this.saveData();
-    return this.data!.wage_advance_requests[index];
+    });
+    return updatedRequest;
   }
 
   async deleteWageAdvanceRequest(id: string): Promise<boolean> {
-    await this.ensureDataLoaded();
-    const index = this.data!.wage_advance_requests.findIndex(
-      (req) => req.id === id
-    );
-    if (index === -1) {
-      return false;
-    }
-    this.data!.wage_advance_requests.splice(index, 1);
-    await this.saveData();
-    return true;
+    return this.wageAdvanceDataSource.delete(id);
   }
 
   // Generate unique ID

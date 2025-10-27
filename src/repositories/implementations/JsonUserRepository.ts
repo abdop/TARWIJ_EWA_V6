@@ -22,24 +22,20 @@ export class JsonUserRepository implements IUserRepository {
   }
 
   async findAll(): Promise<User[]> {
-    // Note: dataService doesn't have getAllUsers method yet
-    // This would need to be implemented in dataService
-    throw new Error("Get all users not implemented in dataService");
+    return dataService.getAllUsers();
   }
 
   async create(user: User): Promise<User> {
-    // Note: dataService doesn't have create method yet
-    throw new Error("Create user not implemented in dataService");
+    // Pass the full user object including id to preserve it
+    return dataService.createUser(user as any);
   }
 
   async update(id: string, updates: Partial<User>): Promise<User | undefined> {
-    // Note: dataService doesn't have update method yet
-    throw new Error("Update user not implemented in dataService");
+    return dataService.updateUser(id, updates);
   }
 
   async delete(id: string): Promise<boolean> {
-    // Note: dataService doesn't have delete method yet
-    throw new Error("Delete user not implemented in dataService");
+    return dataService.deleteUser(id);
   }
 }
 

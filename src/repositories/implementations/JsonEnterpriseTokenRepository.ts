@@ -12,9 +12,8 @@ export class JsonEnterpriseTokenRepository
   implements IEnterpriseTokenRepository
 {
   async findById(id: string): Promise<EnterpriseToken | undefined> {
-    // Note: dataService uses tokenId, not internal id
-    // This would need clarification
-    throw new Error("Find by internal ID not implemented");
+    const tokens = await dataService.getAllEnterpriseTokens();
+    return tokens.find((t: EnterpriseToken) => t.id === id);
   }
 
   async findByTokenId(tokenId: string): Promise<EnterpriseToken | undefined> {
@@ -28,12 +27,12 @@ export class JsonEnterpriseTokenRepository
   }
 
   async findAll(): Promise<EnterpriseToken[]> {
-    // Note: dataService doesn't have getAllTokens method yet
-    throw new Error("Get all tokens not implemented in dataService");
+    return dataService.getAllEnterpriseTokens();
   }
 
   async create(token: EnterpriseToken): Promise<EnterpriseToken> {
-    return dataService.createEnterpriseToken(token);
+    // Pass the full token object including id to preserve it
+    return dataService.createEnterpriseToken(token as any);
   }
 
   async update(
@@ -44,8 +43,10 @@ export class JsonEnterpriseTokenRepository
   }
 
   async delete(tokenId: string): Promise<boolean> {
-    // Note: dataService doesn't have delete method yet
-    throw new Error("Delete token not implemented in dataService");
+    // Find token by tokenId first to get internal id
+    const token = await dataService.getEnterpriseToken(tokenId);
+    if (!token) return false;
+    return dataService.deleteEnterpriseToken(token.id);
   }
 }
 

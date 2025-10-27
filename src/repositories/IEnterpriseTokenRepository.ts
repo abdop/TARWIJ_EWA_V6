@@ -25,6 +25,8 @@ export interface EnterpriseToken {
   pauseKey?: string;
   supplyKeyList?: string[];
   supplyKeyThreshold?: number;
+  swapContractId?: string;
+  settlementDay?: number;
 }
 
 export interface IEnterpriseTokenRepository {

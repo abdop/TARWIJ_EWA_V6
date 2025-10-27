@@ -8,7 +8,7 @@ export interface User {
   name: string;
   email: string;
   role: string;
-  category: "ent_admin" | "decider" | "employee";
+  category: "ent_admin" | "decider" | "employee" | "platform_admin";
   entrepriseId: string;
   hedera_id: string;
 }
