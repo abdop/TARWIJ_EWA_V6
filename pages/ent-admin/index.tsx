@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import { RootState } from '../../src/store';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
+import useEnterpriseOverview from '../../src/hooks/useEnterpriseOverview';
 
 const HashConnectButton = dynamic(
   () => import('../../src/components/HashConnectButton'),
@@ -13,10 +14,33 @@ const HashConnectButton = dynamic(
 export default function EntAdminDashboard() {
   const router = useRouter();
   const { user, accountId, isConnected } = useSelector((state: RootState) => state.hashconnect);
+  const enterpriseId = user?.entrepriseId;
 
-  // Redirect to home if not connected
+  const {
+    data: overview,
+    loading: overviewLoading,
+    error: overviewError,
+    refresh: refreshOverview,
+  } = useEnterpriseOverview(enterpriseId, {
+    enabled: Boolean(enterpriseId),
+    refreshIntervalMs: 60000,
+  });
+
+  const stats = overview?.stats;
+  const pendingRequests = useMemo(() => overview?.pendingRequests.slice(0, 3) ?? [], [overview]);
+  const recentActivity = useMemo(() => overview?.recentActivity.slice(0, 6) ?? [], [overview]);
+
+  const formatNumber = (value?: number, fallback = '—') =>
+    typeof value === 'number' && Number.isFinite(value) ? value.toLocaleString() : fallback;
+
+  const formatTokenBalance = (value?: number) =>
+    typeof value === 'number' && Number.isFinite(value)
+      ? `${value.toLocaleString()} WAT`
+      : '—';
+
+  // Redirect to home if not connected (only after initial load)
   useEffect(() => {
-    if (!isConnected) {
+    if (isConnected === false) {
       router.push('/');
     }
   }, [isConnected, router]);
@@ -27,44 +51,60 @@ export default function EntAdminDashboard() {
         <title>Enterprise Admin • TARWIJ EWA</title>
       </Head>
       
-      <div className="bg-background-dark min-h-screen text-gray-200">
+      <div className="bg-gradient-to-br from-background-dark via-background-dark to-background-dark/95 min-h-screen text-gray-200">
         <div className="flex min-h-screen">
-          <aside className="w-72 bg-background-dark/80 p-6 flex flex-col border-r border-gray-800">
+          <aside className="w-72 bg-background-dark/90 backdrop-blur-sm p-6 flex flex-col border-r border-gray-800/50 shadow-2xl">
             <div className="mb-10">
-              <h1 className="text-2xl font-bold text-white">TARWIJ EWA</h1>
-              <p className="text-sm text-gray-500 mt-1">Enterprise Admin</p>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">T</span>
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">TARWIJ EWA</h1>
+                </div>
+              </div>
+              <p className="text-sm text-gray-500 mt-1 pl-12">Enterprise Admin</p>
             </div>
             <nav className="flex flex-col space-y-2">
-              <a href="/ent-admin" className="flex items-center gap-3 px-4 py-2 rounded-lg bg-primary/30 text-primary font-semibold">
+              <a href="/ent-admin" className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-to-r from-primary/30 to-primary/20 text-primary font-semibold shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30">
                 <DashboardIcon className="w-5 h-5" />
                 <span>Dashboard</span>
               </a>
-              <a href="/ent-admin/employees" className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-300 hover:bg-primary/10">
+              <a href="/ent-admin/employees" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-primary/10 hover:text-primary transition-all">
                 <UsersIcon className="w-5 h-5" />
                 <span>Employees</span>
               </a>
-              <a href="/ent-admin/tokens" className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-300 hover:bg-primary/10">
+              <a href="/ent-admin/tokens" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-primary/10 hover:text-primary transition-all">
                 <TokenIcon className="w-5 h-5" />
                 <span>Token Management</span>
               </a>
             </nav>
-            <div className="mt-auto pt-8 text-xs text-gray-500">
-              Connected via HashPack
+            <div className="mt-auto pt-8">
+              <div className="px-4 py-3 rounded-lg bg-gray-800/50 border border-gray-700/50">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                  <span className="text-xs text-gray-400">Connected</span>
+                </div>
+                <p className="text-xs text-gray-500">via HashPack</p>
+              </div>
             </div>
           </aside>
 
           <main className="flex-1 flex flex-col bg-background-dark/90 overflow-y-auto">
             {/* Top Navigation Bar */}
-            <div className="border-b border-gray-800 bg-background-dark/60 px-10 py-4">
+            <div className="border-b border-gray-800/50 bg-gradient-to-r from-background-dark/80 via-background-dark/60 to-background-dark/80 backdrop-blur-md px-10 py-5 shadow-lg">
               <div className="max-w-6xl mx-auto flex items-center justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold text-white">Enterprise Dashboard</h1>
-                  <p className="text-gray-400 mt-1 text-sm">Manage your enterprise and employees</p>
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Enterprise Dashboard</h1>
+                  <p className="text-gray-400 mt-1 text-sm flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                    Manage your enterprise and employees
+                  </p>
                 </div>
                 <div className="flex items-center gap-4">
                   {isConnected && user && (
-                    <div className="text-right">
-                      <p className="text-sm text-gray-400">Connected as</p>
+                    <div className="text-right px-4 py-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+                      <p className="text-xs text-gray-400">Connected as</p>
                       <p className="text-white font-semibold">{user.name}</p>
                     </div>
                   )}
@@ -78,113 +118,187 @@ export default function EntAdminDashboard() {
               <div className="max-w-6xl mx-auto space-y-8">
 
               {user && (
-                <section className="bg-background-light/10 border border-gray-700 rounded-xl p-6">
-                  <h3 className="text-xl font-semibold text-white mb-4">Welcome, {user.name}</h3>
+                <section className="bg-gradient-to-br from-primary/10 via-background-light/10 to-background-light/5 border border-gray-700/50 rounded-2xl p-6 shadow-xl hover:shadow-2xl hover:shadow-primary/10 transition-all">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                      {user.name.split(' ').map((n: string) => n[0]).join('')}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-white">Welcome, {user.name}</h3>
+                      <p className="text-sm text-primary font-medium">{user.role}</p>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-400">Account ID:</span>
-                      <p className="text-white font-mono">{accountId}</p>
+                    <div className="p-3 rounded-lg bg-background-dark/40 border border-gray-700/30">
+                      <span className="text-gray-400 text-xs">Account ID</span>
+                      <p className="text-white font-mono mt-1">{accountId}</p>
                     </div>
-                    <div>
-                      <span className="text-gray-400">Role:</span>
-                      <p className="text-primary font-semibold">{user.role}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Enterprise:</span>
-                      <p className="text-white">{user.entrepriseId}</p>
+                    <div className="p-3 rounded-lg bg-background-dark/40 border border-gray-700/30">
+                      <span className="text-gray-400 text-xs">Enterprise</span>
+                      <p className="text-white mt-1">{user.entrepriseId}</p>
                     </div>
                   </div>
                 </section>
               )}
 
               <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <article className="rounded-xl border border-gray-700 bg-background-light/10 p-6">
-                  <p className="text-sm text-gray-400">Total Employees</p>
-                  <p className="mt-3 text-3xl font-bold text-white">45</p>
-                  <p className="mt-2 text-xs text-gray-500">Active in system</p>
+                <article className="group rounded-2xl border border-gray-700/50 bg-gradient-to-br from-blue-500/10 to-blue-500/5 p-6 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm text-gray-400 font-medium">Total Employees</p>
+                    <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
+                      <UsersIcon className="w-5 h-5 text-blue-400" />
+                    </div>
+                  </div>
+                  <p className="mt-3 text-4xl font-bold text-white">{formatNumber(stats?.totalEmployees)}</p>
+                  <div className="mt-3 text-xs text-gray-500 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                    Admins: {formatNumber(stats?.adminCount)} • Deciders: {formatNumber(stats?.deciderCount)}
+                  </div>
                 </article>
-                <article className="rounded-xl border border-gray-700 bg-background-light/10 p-6">
-                  <p className="text-sm text-gray-400">Pending Requests</p>
-                  <p className="mt-3 text-3xl font-bold text-white">8</p>
-                  <p className="mt-2 text-xs text-gray-500">Awaiting decider signatures</p>
+                <article className="group rounded-2xl border border-gray-700/50 bg-gradient-to-br from-amber-500/10 to-amber-500/5 p-6 hover:scale-105 hover:shadow-2xl hover:shadow-amber-500/20 transition-all duration-300">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm text-gray-400 font-medium">Pending Requests</p>
+                    <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center group-hover:bg-amber-500/30 transition-colors">
+                      <ClockIcon className="w-5 h-5 text-amber-400" />
+                    </div>
+                  </div>
+                  <p className="mt-3 text-4xl font-bold text-white">{formatNumber(stats?.pendingRequests)}</p>
+                  <p className="mt-3 text-xs text-gray-500 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    {formatNumber(stats?.pendingAmount)} WAT awaiting approval
+                  </p>
                 </article>
-                <article className="rounded-xl border border-gray-700 bg-background-light/10 p-6">
-                  <p className="text-sm text-gray-400">Token Balance</p>
-                  <p className="mt-3 text-3xl font-bold text-white">50,000 WAT</p>
-                  <p className="mt-2 text-xs text-gray-500">Available for advances</p>
+                <article className="group rounded-2xl border border-gray-700/50 bg-gradient-to-br from-primary/10 to-primary/5 p-6 hover:scale-105 hover:shadow-2xl hover:shadow-primary/20 transition-all duration-300">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm text-gray-400 font-medium">Token Balance</p>
+                    <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+                      <TokenIcon className="w-5 h-5 text-primary" />
+                    </div>
+                  </div>
+                  <p className="mt-3 text-4xl font-bold bg-gradient-to-r from-primary to-green-400 bg-clip-text text-transparent">
+                    {formatTokenBalance(overview?.token?.treasuryBalance)}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Latest supply: {formatNumber(overview?.token?.totalSupply)} units</p>
+                  <p className="mt-2 text-xs text-gray-500">Settlement day: {overview?.token?.settlementDay ?? '—'}</p>
                 </article>
               </section>
 
+              {overviewError && (
+                <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200 flex items-center justify-between">
+                  <span>{overviewError}</span>
+                  <button
+                    className="px-3 py-1 rounded-md bg-red-500/20 hover:bg-red-500/30 transition-colors"
+                    onClick={refreshOverview}
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+
+              {overviewLoading && (
+                <div className="flex items-center gap-3 rounded-xl border border-gray-700/40 bg-background-dark/60 p-4 text-sm text-gray-400">
+                  <div className="h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                  Loading enterprise data…
+                </div>
+              )}
+
               <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <div className="rounded-xl border border-gray-700 bg-background-light/10 p-6 space-y-4">
-                  <header className="flex flex-wrap items-center justify-between gap-3">
+                <div className="rounded-2xl border border-gray-700/50 bg-gradient-to-br from-background-light/10 to-background-light/5 p-6 space-y-4 shadow-xl hover:shadow-2xl transition-all">
+                  <header className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-gray-700/50">
                     <div>
-                      <h3 className="text-xl font-semibold text-white">Pending wage advance requests</h3>
-                      <p className="text-sm text-gray-400">Newest requests requiring approval.</p>
+                      <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        Pending Requests
+                      </h3>
+                      <p className="text-sm text-gray-400 mt-1">Newest requests requiring approval</p>
                     </div>
-                    <a href="/ent-admin/requests" className="text-sm font-semibold text-primary hover:text-primary/80">
-                      Manage all requests
-                    </a>
+                    <button
+                      onClick={refreshOverview}
+                      className="text-sm font-semibold text-primary hover:text-primary/80 flex items-center gap-1 transition-all hover:gap-2"
+                    >
+                      Refresh
+                      <ArrowRightIcon className="w-4 h-4" />
+                    </button>
                   </header>
-                  <ul className="space-y-4">
-                    <li className="rounded-lg border border-gray-700 bg-background-dark/60 p-4 flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-white font-semibold">Andrea Howell</p>
-                          <p className="text-xs text-gray-500">Request ID: REQ-2345</p>
-                        </div>
-                        <span className="rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold text-primary">
-                          350 WAT
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Submitted 10/16/2025, 10:42:00 AM
-                      </p>
-                    </li>
-                    <li className="rounded-lg border border-gray-700 bg-background-dark/60 p-4 flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-white font-semibold">Lee Carter</p>
-                          <p className="text-xs text-gray-500">Request ID: REQ-2342</p>
-                        </div>
-                        <span className="rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold text-primary">
-                          420 WAT
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Submitted 10/15/2025, 4:18:00 PM
-                      </p>
-                    </li>
+                  <ul className="space-y-3">
+                    {pendingRequests.length === 0 && !overviewLoading && (
+                      <li className="rounded-lg border border-gray-700/40 bg-background-dark/40 p-4 text-sm text-gray-400 text-center">
+                        No pending wage requests.
+                      </li>
+                    )}
+                    {pendingRequests.map((request) => {
+                      const employeeInitials = request.employeeName
+                        .split(' ')
+                        .map((n) => n[0])
+                        .join('');
+                      return (
+                        <li
+                          key={request.id}
+                          className="group rounded-lg border border-gray-700/50 bg-background-dark/60 p-4 flex flex-col gap-3 hover:border-primary/50 hover:bg-background-dark/80 transition-all"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-bold">
+                                {employeeInitials}
+                              </div>
+                              <div>
+                                <p className="text-white font-semibold group-hover:text-primary transition-colors">{request.employeeName}</p>
+                                <p className="text-xs text-gray-500">{request.id}</p>
+                              </div>
+                            </div>
+                            <span className="rounded-full bg-gradient-to-r from-primary/20 to-primary/10 px-4 py-1.5 text-sm font-bold text-primary border border-primary/30">
+                              {formatNumber(request.amount)} WAT
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-gray-500">
+                            <p>{new Date(request.createdAt).toLocaleString()}</p>
+                            <span className="text-primary font-medium">Status: {request.status.replace('_', ' ')}</span>
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
 
-                <div className="rounded-xl border border-gray-700 bg-background-light/10 p-6 space-y-4">
-                  <header>
-                    <h3 className="text-xl font-semibold text-white">Recent activity</h3>
-                    <p className="text-sm text-gray-400">Approvals, rejections, and token events.</p>
+                <div className="rounded-2xl border border-gray-700/50 bg-gradient-to-br from-background-light/10 to-background-light/5 p-6 space-y-4 shadow-xl hover:shadow-2xl transition-all">
+                  <header className="pb-3 border-b border-gray-700/50">
+                    <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+                      <ActivityIcon className="w-5 h-5 text-primary" />
+                      Recent Activity
+                    </h3>
+                    <p className="text-sm text-gray-400 mt-1">Approvals, rejections, and token events</p>
                   </header>
                   <ul className="space-y-3">
-                    <li className="flex items-start gap-3">
-                      <div className="mt-1 h-2 w-2 rounded-full bg-primary" />
-                      <div>
-                        <p className="text-sm text-gray-300">Approved wage advance for Andrea Howell (350 WAT)</p>
-                        <p className="text-xs text-gray-500">10/16/2025, 11:03:00 AM</p>
-                      </div>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="mt-1 h-2 w-2 rounded-full bg-primary" />
-                      <div>
-                        <p className="text-sm text-gray-300">Received 2,000 WAT from central treasury</p>
-                        <p className="text-xs text-gray-500">10/15/2025, 9:11:00 AM</p>
-                      </div>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="mt-1 h-2 w-2 rounded-full bg-primary" />
-                      <div>
-                        <p className="text-sm text-gray-300">Rejected request from Jamie Porter</p>
-                        <p className="text-xs text-gray-500">10/14/2025, 6:40:00 PM</p>
-                      </div>
-                    </li>
+                    {recentActivity.length === 0 && !overviewLoading && (
+                      <li className="rounded-lg border border-gray-700/40 bg-background-dark/40 p-4 text-sm text-gray-400 text-center">
+                        No recent activity recorded.
+                      </li>
+                    )}
+                    {recentActivity.map((activity) => (
+                      <li key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-background-dark/40 transition-all">
+                        <div
+                          className={`mt-1 h-2 w-2 rounded-full ${
+                            activity.status === 'SUCCESS'
+                              ? 'bg-green-500'
+                              : activity.status === 'FAILED'
+                              ? 'bg-red-500'
+                              : 'bg-blue-500'
+                          }`}
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-300">
+                            <span className="text-white font-semibold">{activity.type.replace(/_/g, ' ')}</span>
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-gray-500">
+                            <span>{new Date(activity.createdAt).toLocaleString()}</span>
+                            {activity.details?.employeeName && <span>• {activity.details.employeeName}</span>}
+                            {activity.details?.requestedAmount && (
+                              <span>• {formatNumber(Number(activity.details.requestedAmount))} WAT</span>
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </section>
@@ -207,4 +321,16 @@ function UsersIcon(props: React.SVGProps<SVGSVGElement>) {
 
 function TokenIcon(props: React.SVGProps<SVGSVGElement>) {
   return <svg viewBox="0 0 24 24" fill="currentColor" {...props}><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm1 15h-2v-1H9v-2h2v-3H9V9h2V7h2v2h2v2h-2v3h2v2h-2Z" /></svg>;
+}
+
+function ClockIcon(props: React.SVGProps<SVGSVGElement>) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+}
+
+function ArrowRightIcon(props: React.SVGProps<SVGSVGElement>) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
+}
+
+function ActivityIcon(props: React.SVGProps<SVGSVGElement>) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>;
 }

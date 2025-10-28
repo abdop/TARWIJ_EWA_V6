@@ -1665,6 +1665,39 @@
       "id": "dlt_1761585225479_ah172kb4m",
       "transactionId": "0.0.6976406@1761585216.909706497",
       "completedAt": "2025-10-27T17:13:45.479Z"
+    },
+    {
+      "type": "WAGE_ADVANCE_REQUEST_CREATED",
+      "status": "SUCCESS",
+      "userId": "user_006",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "requestId": "wage_adv_1761662719135_6l8r0f959",
+        "requestedAmount": 1000,
+        "employeeName": "Test User Account"
+      },
+      "createdAt": "2025-10-28T14:45:19.138Z",
+      "id": "dlt_1761662719138_di9udzm33",
+      "completedAt": "2025-10-28T14:45:19.138Z"
+    },
+    {
+      "type": "SCHEDULED_MINT_CREATED",
+      "status": "SUCCESS",
+      "userId": "user_006",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "requestId": "wage_adv_1761662719135_6l8r0f959",
+        "scheduledTransactionId": "0.0.7150796",
+        "amount": 1000,
+        "expirationTime": "2025-10-31T14:45:21.789Z",
+        "requiredSignatures": 3
+      },
+      "createdAt": "2025-10-28T14:45:21.789Z",
+      "id": "dlt_1761662721789_11cvjfkft",
+      "transactionId": "0.0.6976406@1761662715.232354882",
+      "completedAt": "2025-10-28T14:45:21.789Z"
     }
   ],
   "wage_advance_requests": [
@@ -1872,6 +1905,20 @@
       "deciderApprovals": [],
       "rejectionReason": "just for test",
       "rejectedBy": "user_002"
+    },
+    {
+      "id": "wage_adv_1761662719135_6l8r0f959",
+      "employeeId": "user_006",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "requestedAmount": 1000,
+      "status": "pending_signature",
+      "createdAt": "2025-10-28T14:45:19.135Z",
+      "updatedAt": "2025-10-28T14:45:21.787Z",
+      "scheduledTransactionId": "0.0.7150796",
+      "deleteKey": "302e020100300506032b65700422042091b3b17af71544147c77aed63171c8c1518e02c8d20edec75664ed778df8ca03",
+      "memo": "wage_advance:wage_adv_1761662719135_6l8r0f959",
+      "deciderApprovals": []
     }
   ]
 }
