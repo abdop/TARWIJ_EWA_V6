@@ -51,10 +51,10 @@ export default function EnterpriseList() {
 
   if (loading) {
     return (
-      <div className="bg-background-light/10 border border-gray-700 rounded-xl p-8 text-center">
-        <div className="flex items-center justify-center gap-3">
+      <div className="bg-background-light/20 border border-gray-700/70 rounded-xl p-8 text-center">
+        <div className="flex items-center justify-center gap-3 text-base">
           <LoadingSpinner />
-          <span className="text-gray-400">Loading enterprises...</span>
+          <span className="text-gray-300">Loading enterprises...</span>
         </div>
       </div>
     );
@@ -62,11 +62,11 @@ export default function EnterpriseList() {
 
   if (error) {
     return (
-      <div className="bg-red-500/10 border border-red-500/50 rounded-xl p-6">
-        <p className="text-red-400">{error}</p>
+      <div className="bg-red-500/15 border border-red-500/60 rounded-xl p-6">
+        <p className="text-red-300 text-base font-medium">{error}</p>
         <button
           onClick={fetchEnterprises}
-          className="mt-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-red-300 transition-colors"
+          className="mt-4 px-4 py-2 bg-red-500/30 hover:bg-red-500/40 rounded-lg text-red-100 transition-colors text-sm font-semibold"
         >
           Retry
         </button>
@@ -76,9 +76,9 @@ export default function EnterpriseList() {
 
   if (enterprises.length === 0) {
     return (
-      <div className="bg-background-light/10 border border-gray-700 rounded-xl p-8 text-center">
-        <p className="text-gray-400">No enterprises found</p>
-        <p className="text-sm text-gray-500 mt-2">
+      <div className="bg-background-light/20 border border-gray-700/70 rounded-xl p-8 text-center">
+        <p className="text-gray-200 text-base font-medium">No enterprises found</p>
+        <p className="text-sm text-gray-400 mt-2">
           Click "Add New Enterprise" to create your first enterprise
         </p>
       </div>
@@ -86,51 +86,40 @@ export default function EnterpriseList() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-4">
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 gap-5">
         {enterprises.map((enterprise) => (
           <div
             key={enterprise.id}
-            className="bg-background-light/10 border border-gray-700 rounded-xl p-6 hover:border-primary/50 transition-colors cursor-pointer"
+            className="bg-background-light/15 border border-gray-700/70 rounded-2xl p-6 sm:p-7 hover:border-primary/60 hover:shadow-lg/20 transition-all cursor-pointer"
             onClick={() => setSelectedEnterprise(enterprise)}
           >
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-xl font-semibold text-white">
+                <div className="flex flex-wrap items-center gap-3 mb-2">
+                  <h3 className="text-2xl font-semibold text-white tracking-tight">
                     {enterprise.name}
                   </h3>
-                  <span className="px-2 py-1 bg-primary/20 text-primary text-xs font-medium rounded">
+                  <span className="px-2.5 py-1 bg-primary/25 text-primary text-xs font-semibold rounded-md uppercase tracking-wide">
                     {enterprise.symbol}
                   </span>
                 </div>
-                <p className="text-sm text-gray-400 mb-4">{enterprise.industry}</p>
+                <p className="text-base text-gray-300 mb-6 leading-relaxed">{enterprise.industry}</p>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-xs text-gray-500">Token ID</p>
-                    <p className="text-sm text-white font-mono">
-                      {enterprise.token?.tokenId || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Total Users</p>
-                    <p className="text-sm text-white">{enterprise.userCount}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Deciders</p>
-                    <p className="text-sm text-white">{enterprise.deciderCount}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Settlement Day</p>
-                    <p className="text-sm text-white">
-                      {enterprise.token?.settlementDay || "N/A"}
-                    </p>
-                  </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+                  <InfoCell label="Token ID" value={enterprise.token?.tokenId || 'N/A'} mono />
+                  <InfoCell label="Swap Contract ID" value={enterprise.token?.swapContractId || 'N/A'} mono />
+                  <InfoCell label="Total Users" value={enterprise.userCount.toLocaleString()} />
+                  <InfoCell label="Admins" value={enterprise.adminCount.toLocaleString()} />
+                  <InfoCell label="Deciders" value={enterprise.deciderCount.toLocaleString()} />
+                  <InfoCell
+                    label="Settlement Day"
+                    value={enterprise.token?.settlementDay ? `Day ${enterprise.token.settlementDay}` : 'N/A'}
+                  />
                 </div>
               </div>
 
-              <div className="ml-4">
+              <div className="md:ml-4 flex md:block items-center justify-end">
                 <ChevronRightIcon className="w-6 h-6 text-gray-500" />
               </div>
             </div>
@@ -141,20 +130,20 @@ export default function EnterpriseList() {
       {/* Enterprise Detail Modal */}
       {selectedEnterprise && (
         <div
-          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedEnterprise(null)}
         >
           <div
-            className="bg-background-dark border border-gray-700 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-background-dark border border-gray-700 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-xl/30"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="border-b border-gray-700 p-6">
-              <div className="flex items-center justify-between">
+            <div className="border-b border-gray-700/80 p-6">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-white">
+                  <h2 className="text-3xl font-bold text-white tracking-tight">
                     {selectedEnterprise.name}
                   </h2>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <p className="text-base text-gray-300 mt-2 leading-relaxed">
                     {selectedEnterprise.industry}
                   </p>
                 </div>
@@ -167,106 +156,58 @@ export default function EnterpriseList() {
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">
-                  Enterprise Information
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs text-gray-500">Symbol</p>
-                    <p className="text-white">{selectedEnterprise.symbol}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Contact Email</p>
-                    <p className="text-white">{selectedEnterprise.contactEmail}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-xs text-gray-500">Address</p>
-                    <p className="text-white">{selectedEnterprise.address}</p>
-                  </div>
+            <div className="p-6 space-y-8">
+              <section>
+                <h3 className="text-xl font-semibold text-white mb-5">Enterprise Information</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <DetailCell label="Symbol" value={selectedEnterprise.symbol} />
+                  <DetailCell label="Contact Email" value={selectedEnterprise.contactEmail} />
+                  <DetailCell label="Address" value={selectedEnterprise.address} span />
                   {selectedEnterprise.bankAccount && (
-                    <div className="col-span-2">
-                      <p className="text-xs text-gray-500">Bank Account</p>
-                      <p className="text-white font-mono">
-                        {selectedEnterprise.bankAccount}
-                      </p>
-                    </div>
+                    <DetailCell label="Bank Account" value={selectedEnterprise.bankAccount} mono span />
                   )}
                 </div>
-              </div>
+              </section>
 
               {selectedEnterprise.token && (
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">
-                    Token Information
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-gray-500">Token ID</p>
-                      <p className="text-white font-mono">
-                        {selectedEnterprise.token.tokenId}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Token Symbol</p>
-                      <p className="text-white">{selectedEnterprise.token.symbol}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-xs text-gray-500">Token Name</p>
-                      <p className="text-white">{selectedEnterprise.token.name}</p>
-                    </div>
-                    {selectedEnterprise.token.swapContractId && (
-                      <div className="col-span-2">
-                        <p className="text-xs text-gray-500">Swap Contract ID</p>
-                        <p className="text-white font-mono">
-                          {selectedEnterprise.token.swapContractId}
-                        </p>
-                      </div>
-                    )}
-                    {selectedEnterprise.token.settlementDay && (
-                      <div>
-                        <p className="text-xs text-gray-500">Settlement Day</p>
-                        <p className="text-white">
-                          Day {selectedEnterprise.token.settlementDay} of month
-                        </p>
-                      </div>
-                    )}
+                <section>
+                  <h3 className="text-xl font-semibold text-white mb-5">Token Information</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <DetailCell label="Token ID" value={selectedEnterprise.token.tokenId} mono />
+                    <DetailCell label="Token Symbol" value={selectedEnterprise.token.symbol} />
+                    <DetailCell label="Token Name" value={selectedEnterprise.token.name} span />
+                    <DetailCell
+                      label="Swap Contract ID"
+                      value={selectedEnterprise.token.swapContractId || 'N/A'}
+                      mono
+                      span
+                    />
+                    <DetailCell
+                      label="Settlement Day"
+                      value={
+                        selectedEnterprise.token.settlementDay
+                          ? `Day ${selectedEnterprise.token.settlementDay} of month`
+                          : 'N/A'
+                      }
+                    />
                   </div>
-                </div>
+                </section>
               )}
 
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">
-                  User Statistics
-                </h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-background-light/10 border border-gray-700 rounded-lg p-4">
-                    <p className="text-xs text-gray-500">Admins</p>
-                    <p className="text-2xl font-bold text-white">
-                      {selectedEnterprise.adminCount}
-                    </p>
-                  </div>
-                  <div className="bg-background-light/10 border border-gray-700 rounded-lg p-4">
-                    <p className="text-xs text-gray-500">Deciders</p>
-                    <p className="text-2xl font-bold text-white">
-                      {selectedEnterprise.deciderCount}
-                    </p>
-                  </div>
-                  <div className="bg-background-light/10 border border-gray-700 rounded-lg p-4">
-                    <p className="text-xs text-gray-500">Employees</p>
-                    <p className="text-2xl font-bold text-white">
-                      {selectedEnterprise.employeeCount}
-                    </p>
-                  </div>
+              <section>
+                <h3 className="text-xl font-semibold text-white mb-5">User Statistics</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                  <StatBlock label="Admins" value={selectedEnterprise.adminCount} />
+                  <StatBlock label="Deciders" value={selectedEnterprise.deciderCount} />
+                  <StatBlock label="Employees" value={selectedEnterprise.employeeCount} />
                 </div>
-              </div>
+              </section>
             </div>
 
-            <div className="border-t border-gray-700 p-6">
+            <div className="border-t border-gray-700/80 p-6 bg-background-dark/80">
               <button
                 onClick={() => setSelectedEnterprise(null)}
-                className="w-full px-6 py-2 bg-primary rounded-lg text-white hover:bg-primary/90 transition-colors"
+                className="w-full px-6 py-2.5 bg-primary rounded-lg text-white font-semibold hover:bg-primary/90 transition-colors"
               >
                 Close
               </button>
@@ -280,7 +221,7 @@ export default function EnterpriseList() {
 
 function LoadingSpinner() {
   return (
-    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+    <svg className="animate-spin h-5 w-5 text-primary" viewBox="0 0 24 24">
       <circle
         className="opacity-25"
         cx="12"
@@ -317,5 +258,46 @@ function CloseIcon(props: React.SVGProps<SVGSVGElement>) {
         d="M6 18L18 6M6 6l12 12"
       />
     </svg>
+  );
+}
+
+function InfoCell({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="bg-background-dark/60 border border-gray-700/70 rounded-lg p-4">
+      <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold">{label}</p>
+      <p
+        className={`mt-2 text-sm sm:text-base font-medium text-white ${mono ? 'font-mono tracking-tight' : ''}`}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function DetailCell({
+  label,
+  value,
+  span,
+  mono,
+}: {
+  label: string;
+  value: string;
+  span?: boolean;
+  mono?: boolean;
+}) {
+  return (
+    <div className={`${span ? 'sm:col-span-2' : ''}`}>
+      <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold">{label}</p>
+      <p className={`mt-2 text-base text-white ${mono ? 'font-mono tracking-tight' : ''}`}>{value}</p>
+    </div>
+  );
+}
+
+function StatBlock({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="bg-background-light/10 border border-gray-700/70 rounded-lg p-5">
+      <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold">{label}</p>
+      <p className="text-3xl font-bold text-white mt-3">{value.toLocaleString()}</p>
+    </div>
   );
 }

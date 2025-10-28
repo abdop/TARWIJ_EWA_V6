@@ -3,14 +3,36 @@ import dynamic from 'next/dynamic';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../src/store';
+import { useEmployeeOverview, EmployeeOverviewSummary } from '../../src/hooks/useEnterpriseOverview';
 
 const HashConnectButton = dynamic(
   () => import('../../src/components/HashConnectButton'),
   { ssr: false }
 );
 
+const statusClasses: Record<string, string> = {
+  success: 'bg-green-500/20 text-green-300 border border-green-500/40',
+  completed: 'bg-green-500/20 text-green-300 border border-green-500/40',
+  approved: 'bg-green-500/20 text-green-300 border border-green-500/40',
+  pending: 'bg-amber-500/20 text-amber-300 border border-amber-500/40',
+  pending_signature: 'bg-amber-500/20 text-amber-300 border border-amber-500/40',
+  scheduled: 'bg-blue-500/20 text-blue-300 border border-blue-500/40',
+  failed: 'bg-red-500/20 text-red-300 border border-red-500/40',
+  rejected: 'bg-red-500/20 text-red-300 border border-red-500/40',
+};
+
 export default function EmployeeWalletPage() {
   const { user, accountId, isConnected } = useSelector((state: RootState) => state.hashconnect);
+
+  const {
+    data: overview,
+    loading,
+    error,
+    refresh,
+  } = useEmployeeOverview(accountId ?? undefined, {
+    enabled: Boolean(isConnected && accountId),
+    refreshIntervalMs: 60_000,
+  });
 
   const walletTips = useMemo(
     () => [
@@ -28,6 +50,68 @@ export default function EmployeeWalletPage() {
       },
     ],
     []
+  );
+
+  const decimals = overview?.token?.decimals ?? 2;
+  const amountDivisor = useMemo(() => Math.pow(10, decimals || 0), [decimals]);
+  const tokenSymbol = overview?.token?.symbol ?? 'WAT';
+  const recentActivity: EmployeeOverviewSummary['recentActivity'] = overview?.recentActivity ?? [];
+
+  const formatAmount = (value?: number | null) => {
+    if (value === undefined || value === null) {
+      return '—';
+    }
+    return (value / amountDivisor).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const formatDateTime = (value?: string | null) => {
+    if (!value) {
+      return '—';
+    }
+    return new Date(value).toLocaleString();
+  };
+
+  const getStatusBadgeClass = (status: string) => {
+    const normalized = status.toLowerCase();
+    return statusClasses[normalized] ?? 'bg-gray-600/30 text-gray-300 border border-gray-500/40';
+  };
+
+  const extractAmountFromDetails = (details: Record<string, unknown>) => {
+    const amountCandidate = details.requestedAmount ?? details.amount;
+    return typeof amountCandidate === 'number' ? amountCandidate : null;
+  };
+
+  const extractNameFromDetails = (details: Record<string, unknown>) => {
+    const nameCandidate = details.employeeName ?? details.name;
+    return typeof nameCandidate === 'string' ? nameCandidate : null;
+  };
+
+  const availableBalance = overview
+    ? Math.max((overview.stats.lifetimeAdvanced ?? 0) - (overview.stats.pendingAmount ?? 0), 0)
+    : null;
+
+  const tokenCards = useMemo(
+    () => [
+      {
+        label: 'Total Received',
+        value: formatAmount(overview?.stats.lifetimeAdvanced ?? null),
+        helper: 'Approved wage advances delivered to your wallet',
+      },
+      {
+        label: 'Pending Amount',
+        value: formatAmount(overview?.stats.pendingAmount ?? null),
+        helper: 'Awaiting approval or signature',
+      },
+      {
+        label: 'Estimated Available',
+        value: formatAmount(availableBalance),
+        helper: 'Lifetime received minus pending amounts',
+      },
+    ],
+    [availableBalance, overview, tokenSymbol]
   );
 
   return (
@@ -82,6 +166,19 @@ export default function EmployeeWalletPage() {
             <div className="flex-1 p-10">
               <div className="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-4 gap-8">
                 <div className="xl:col-span-3 space-y-6">
+                  {error && (
+                    <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200 flex items-center justify-between">
+                      <span>{error}</span>
+                      <button
+                        type="button"
+                        onClick={refresh}
+                        className="rounded-md border border-red-500/40 px-3 py-1 text-red-100 hover:bg-red-500/20"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  )}
+
                   <section className="rounded-2xl border border-gray-700 bg-background-light/5 p-6">
                     <h2 className="text-lg font-semibold text-white mb-4">Account Overview</h2>
 
@@ -106,21 +203,127 @@ export default function EmployeeWalletPage() {
                     )}
                   </section>
 
-                  <section className="rounded-2xl border border-gray-700 bg-background-light/5 p-6">
-                    <h2 className="text-lg font-semibold text-white mb-4">Token Balances</h2>
-                    <div className="rounded-lg border border-dashed border-gray-700/60 bg-background-dark/60 p-6 text-sm text-gray-400">
-                      Token balance details will be displayed here once the live data source is wired in.
+                  <section className="rounded-2xl border border-gray-700 bg-background-light/5 p-6 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-semibold text-white">Token Balances</h2>
+                      <button
+                        type="button"
+                        onClick={refresh}
+                        disabled={!isConnected || loading}
+                        className="text-sm font-semibold text-primary hover:text-primary/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Refresh
+                      </button>
                     </div>
+
+                    {!isConnected ? (
+                      <div className="rounded-lg border border-dashed border-gray-700/60 bg-background-dark/60 p-6 text-sm text-gray-400">
+                        Connect your wallet to view token balances.
+                      </div>
+                    ) : loading && !overview ? (
+                      <div className="flex items-center gap-3 text-sm text-gray-400">
+                        <span className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                        Loading token balances…
+                      </div>
+                    ) : overview ? (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {tokenCards.map((card) => (
+                            <div key={card.label} className="rounded-xl bg-background-dark/50 border border-gray-700/80 p-5">
+                              <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold">{card.label}</p>
+                              <p className="text-2xl font-bold text-white mt-3">{card.value} {tokenSymbol}</p>
+                              <p className="text-xs text-gray-500 mt-2 leading-relaxed">{card.helper}</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-400">
+                          <div className="rounded-lg border border-gray-700/60 bg-background-dark/60 p-4">
+                            <p className="text-xs uppercase tracking-wide text-gray-500">Token ID</p>
+                            <p className="mt-2 font-mono text-white text-sm break-all">{overview.token?.tokenId ?? '—'}</p>
+                          </div>
+                          <div className="rounded-lg border border-gray-700/60 bg-background-dark/60 p-4">
+                            <p className="text-xs uppercase tracking-wide text-gray-500">Treasury Account</p>
+                            <p className="mt-2 font-mono text-white text-sm break-all">{overview.token?.treasuryAccountId ?? '—'}</p>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="rounded-lg border border-dashed border-gray-700/60 bg-background-dark/60 p-6 text-sm text-gray-400">
+                        We could not load token balance information.
+                      </div>
+                    )}
                   </section>
 
-                  <section className="rounded-2xl border border-gray-700 bg-background-light/5 p-6">
-                    <div className="flex items-center justify-between mb-4">
+                  <section className="rounded-2xl border border-gray-700 bg-background-light/5 p-6 space-y-6">
+                    <div className="flex items-center justify-between">
                       <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
-                      <button className="text-sm font-semibold text-primary hover:text-primary/80 transition">Refresh</button>
+                      <button
+                        type="button"
+                        onClick={refresh}
+                        disabled={!isConnected || loading}
+                        className="text-sm font-semibold text-primary hover:text-primary/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Refresh
+                      </button>
                     </div>
-                    <div className="rounded-lg border border-dashed border-gray-700/60 bg-background-dark/60 p-6 text-sm text-gray-400">
-                      Your most recent wage advance and token transactions will appear here.
-                    </div>
+
+                    {!isConnected ? (
+                      <div className="rounded-lg border border-dashed border-gray-700/60 bg-background-dark/60 p-6 text-sm text-gray-400">
+                        Connect your wallet to view your recent wage advance activity.
+                      </div>
+                    ) : loading && !recentActivity.length ? (
+                      <div className="flex items-center gap-3 text-sm text-gray-400">
+                        <span className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                        Loading recent activity…
+                      </div>
+                    ) : recentActivity.length === 0 ? (
+                      <div className="rounded-lg border border-dashed border-gray-700/60 bg-background-dark/60 p-6 text-sm text-gray-400">
+                        No recent activity recorded yet. Your wage advances and token transactions will appear here.
+                      </div>
+                    ) : (
+                      <ul className="space-y-3">
+                        {recentActivity.map((activity) => {
+                          const details = activity.details ?? {};
+                          const extractedAmount = extractAmountFromDetails(details);
+                          const extractedName = extractNameFromDetails(details);
+
+                          return (
+                            <li
+                              key={activity.id}
+                              className="rounded-lg border border-gray-700/70 bg-background-dark/60 p-4 flex flex-col gap-2"
+                            >
+                              <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div>
+                                  <p className="text-sm font-semibold text-white">
+                                    {activity.type.replace(/_/g, ' ')}
+                                  </p>
+                                  <p className="text-xs text-gray-500">{formatDateTime(activity.createdAt)}</p>
+                                </div>
+                                <span
+                                  className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${getStatusBadgeClass(
+                                    activity.status
+                                  )}`}
+                                >
+                                  {activity.status.replace(/_/g, ' ')}
+                                </span>
+                              </div>
+                              <div className="text-xs text-gray-400 flex flex-wrap items-center gap-2">
+                                {extractedName && <span>{extractedName}</span>}
+                                {extractedAmount !== null && (
+                                  <span className="text-white/90">
+                                    {formatAmount(extractedAmount)} {tokenSymbol}
+                                  </span>
+                                )}
+                                {activity.transactionId && (
+                                  <span className="font-mono text-gray-500">Tx: {activity.transactionId}</span>
+                                )}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
                   </section>
                 </div>
 
