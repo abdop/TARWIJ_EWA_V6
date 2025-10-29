@@ -80,6 +80,9 @@ export class EnterpriseTokenService {
     config: EnterpriseTokenConfig
   ): Promise<TokenCreationResult> {
     const client = hederaClient.getClient();
+    if (!client) {
+      throw new Error("Hedera client not initialized");
+    }
     const decimals = config.decimals ?? 2;
 
     // Get admin private key
@@ -258,6 +261,9 @@ export class EnterpriseTokenService {
    */
   async pauseToken(tokenId: string, adminPrivateKey: string): Promise<string> {
     const client = hederaClient.getClient();
+    if (!client) {
+      throw new Error("Hedera client not initialized");
+    }
     const adminKey = PrivateKey.fromString(adminPrivateKey);
 
     const pauseTx = new TokenPauseTransaction()
@@ -296,6 +302,9 @@ export class EnterpriseTokenService {
     adminPrivateKey: string
   ): Promise<string> {
     const client = hederaClient.getClient();
+    if (!client) {
+      throw new Error("Hedera client not initialized");
+    }
     const adminKey = PrivateKey.fromString(adminPrivateKey);
 
     const unpauseTx = new TokenUnpauseTransaction()
@@ -335,6 +344,9 @@ export class EnterpriseTokenService {
     adminPrivateKey: string
   ): Promise<string> {
     const client = hederaClient.getClient();
+    if (!client) {
+      throw new Error("Hedera client not initialized");
+    }
     const adminKey = PrivateKey.fromString(adminPrivateKey);
 
     const freezeTx = new TokenFreezeTransaction()
@@ -376,6 +388,9 @@ export class EnterpriseTokenService {
     adminPrivateKey: string
   ): Promise<string> {
     const client = hederaClient.getClient();
+    if (!client) {
+      throw new Error("Hedera client not initialized");
+    }
     const adminKey = PrivateKey.fromString(adminPrivateKey);
 
     const unfreezeTx = new TokenUnfreezeTransaction()
@@ -418,6 +433,9 @@ export class EnterpriseTokenService {
     wipePrivateKey: string
   ): Promise<string> {
     const client = hederaClient.getClient();
+    if (!client) {
+      throw new Error("Hedera client not initialized");
+    }
     const wipeKey = PrivateKey.fromString(wipePrivateKey);
 
     const wipeTx = new TokenWipeTransaction()
@@ -467,6 +485,9 @@ export class EnterpriseTokenService {
     }
   ): Promise<string> {
     const client = hederaClient.getClient();
+    if (!client) {
+      throw new Error("Hedera client not initialized");
+    }
     const adminKey = PrivateKey.fromString(adminPrivateKey);
 
     const updateTx = new TokenUpdateTransaction().setTokenId(tokenId);

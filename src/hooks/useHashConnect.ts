@@ -15,6 +15,8 @@ const useHashConnect = () => {
   const { isConnected, accountId, isLoading, error, user, userRole } = hashconnectState;
 
   useEffect(() => {
+    let isSubscribed = true;
+    
     const setupHashConnect = async () => {
       try {
         // Only run on client side
@@ -30,6 +32,7 @@ const useHashConnect = () => {
 
         // Set up event listeners
         instance.pairingEvent.on(async (pairingData: any) => {
+          if (!isSubscribed) return;
           console.log("Wallet paired:", pairingData);
           const accountIds = getConnectedAccountIds();
           if (accountIds && accountIds.length > 0) {
@@ -57,11 +60,13 @@ const useHashConnect = () => {
         });
 
         instance.disconnectionEvent.on(() => {
+          if (!isSubscribed) return;
           console.log("Wallet disconnected");
           dispatch(setDisconnected());
         });
 
         instance.connectionStatusChangeEvent.on((status: any) => {
+          if (!isSubscribed) return;
           console.log("Connection status changed:", status);
         });
 
@@ -97,6 +102,11 @@ const useHashConnect = () => {
     };
 
     setupHashConnect();
+
+    // Cleanup function
+    return () => {
+      isSubscribed = false;
+    };
   }, [dispatch]);
 
   const connect = async () => {
@@ -107,10 +117,26 @@ const useHashConnect = () => {
       }
 
       const instance = getHashConnectInstance();
+      
+      // Disconnect any existing connections to clear expired proposals
+      try {
+        instance.disconnect();
+      } catch (e) {
+        // Ignore disconnect errors
+      }
+      
       await instance.openPairingModal();
     } catch (error) {
       console.error('Connection failed:', error);
-      dispatch(setError(error instanceof Error ? error.message : 'Connection failed'));
+      const errorMessage = error instanceof Error ? error.message : 'Connection failed';
+      
+      // Handle specific WalletConnect errors
+      if (errorMessage.includes('Proposal expired')) {
+        dispatch(setError('Connection request expired. Please try again.'));
+      } else {
+        dispatch(setError(errorMessage));
+      }
+      dispatch(setLoading(false));
     }
   };
 

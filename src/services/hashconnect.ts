@@ -1,5 +1,5 @@
 import { HashConnect } from "hashconnect";
-import { AccountId, LedgerId } from "@hashgraph/sdk";
+import { LedgerId } from "@hashgraph/sdk";
 
 // Configuration
 const env = "testnet"; // or "mainnet" for production
@@ -89,8 +89,9 @@ export const signTransaction = async (
     throw new Error("No connected accounts");
   }
 
+  // Pass accountId as string to avoid SDK version conflicts
   const result = await instance.signTransaction(
-    AccountId.fromString(accountIdForSigning),
+    accountIdForSigning as any,
     transaction
   );
   return result;
@@ -101,8 +102,9 @@ export const executeTransaction = async (
   transaction: any
 ) => {
   const instance = getHashConnectInstance();
+  // Pass accountId as string to avoid SDK version conflicts
   const result = await instance.sendTransaction(
-    AccountId.fromString(accountIdForSigning),
+    accountIdForSigning as any,
     transaction
   );
   return result;
@@ -118,8 +120,9 @@ export const signMessages = async (
     await initPromise;
   }
 
+  // Pass accountId as string to avoid SDK version conflicts
   const result = await instance.signMessages(
-    AccountId.fromString(accountIdForSigning),
+    accountIdForSigning as any,
     message
   );
   return result;
