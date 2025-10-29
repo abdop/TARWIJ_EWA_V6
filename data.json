@@ -46,6 +46,14 @@
       "industry": "Officia et sapiente "
     }
   ],
+  "shops": [
+    {
+      "id": "shop_001",
+      "name": "Grocery Store",
+      "address": "123 Technology Drive, Silicon Valley, CA",
+      "contactEmail": "info@globalsolutions.com"
+    }
+  ],
   "users": [
     {
       "id": "user_001",
@@ -70,8 +78,8 @@
       "name": "Charlie Brown",
       "email": "charlie.brown@globalsolutions.com",
       "role": "CEO",
-      "category": "decider",
-      "entrepriseId": "ent_002",
+      "category": "shop_admin",
+      "shopId": "shop_001",
       "hedera_id": "0.0.6974242"
     },
     {
@@ -1698,6 +1706,118 @@
       "id": "dlt_1761662721789_11cvjfkft",
       "transactionId": "0.0.6976406@1761662715.232354882",
       "completedAt": "2025-10-28T14:45:21.789Z"
+    },
+    {
+      "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "tokenId": "0.0.7102487",
+      "details": {
+        "shopAccountId": "0.0.6974242",
+        "tokenId": "0.0.7102487",
+        "enterpriseId": null,
+        "tokenType": "platform"
+      },
+      "createdAt": "2025-10-29T22:48:59.741Z",
+      "id": "dlt_1761778139741_jlks7smqj"
+    },
+    {
+      "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "tokenId": "0.0.7102487",
+      "details": {
+        "shopAccountId": "0.0.6974242",
+        "tokenId": "0.0.7102487",
+        "enterpriseId": null,
+        "tokenType": "platform"
+      },
+      "createdAt": "2025-10-29T22:50:55.194Z",
+      "id": "dlt_1761778255194_u342pn6q8"
+    },
+    {
+      "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "tokenId": "0.0.7102487",
+      "details": {
+        "shopAccountId": "0.0.6974242",
+        "tokenId": "0.0.7102487",
+        "enterpriseId": null,
+        "tokenType": "platform"
+      },
+      "createdAt": "2025-10-29T22:51:18.160Z",
+      "id": "dlt_1761778278161_7rsio16wg"
+    },
+    {
+      "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "tokenId": "0.0.7102487",
+      "details": {
+        "shopAccountId": "0.0.6974242",
+        "tokenId": "0.0.7102487",
+        "enterpriseId": null,
+        "tokenType": "platform"
+      },
+      "createdAt": "2025-10-29T22:58:16.248Z",
+      "id": "dlt_1761778696248_if0hhke1i"
+    },
+    {
+      "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "tokenId": "0.0.7020524",
+      "details": {
+        "shopAccountId": "0.0.6974242",
+        "tokenId": "0.0.7020524",
+        "enterpriseId": "ent_001",
+        "tokenType": "enterprise"
+      },
+      "createdAt": "2025-10-29T23:01:57.154Z",
+      "id": "dlt_1761778917154_sq5nz7kdg"
+    },
+    {
+      "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "tokenId": "0.0.7020524",
+      "details": {
+        "shopAccountId": "0.0.6974242",
+        "tokenId": "0.0.7020524",
+        "enterpriseId": "ent_001",
+        "tokenType": "enterprise"
+      },
+      "createdAt": "2025-10-29T23:02:21.968Z",
+      "id": "dlt_1761778941968_setb7zsmf"
+    },
+    {
+      "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "shopAccountId": "0.0.6974242",
+        "tokenId": "0.0.7091937",
+        "enterpriseId": "ent_002",
+        "tokenType": "enterprise"
+      },
+      "createdAt": "2025-10-29T23:02:48.909Z",
+      "id": "dlt_1761778968909_pzzj4m15w"
+    },
+    {
+      "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "shopAccountId": "0.0.6974242",
+        "tokenId": "0.0.7091937",
+        "enterpriseId": "ent_002",
+        "tokenType": "enterprise"
+      },
+      "createdAt": "2025-10-29T23:03:09.674Z",
+      "id": "dlt_1761778989674_58is7576j"
     }
   ],
   "wage_advance_requests": [

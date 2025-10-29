@@ -22,6 +22,7 @@ export interface IDltOperationRepository {
   findByToken(tokenId: string): Promise<DltOperation[]>;
   findByUser(userId: string): Promise<DltOperation[]>;
   findByType(type: string): Promise<DltOperation[]>;
+  findByStatus(status: string): Promise<DltOperation[]>;
   findAll(): Promise<DltOperation[]>;
   create(operation: DltOperation): Promise<DltOperation>;
   update(id: string, updates: Partial<DltOperation>): Promise<DltOperation | undefined>;

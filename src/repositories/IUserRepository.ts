@@ -3,13 +3,15 @@
  * Abstraction layer for user data operations
  */
 
+import type { UserRole } from "../../packages/shared/types";
+
 export interface User {
   id: string;
   name: string;
   email: string;
   role: string;
-  category: "ent_admin" | "decider" | "employee" | "platform_admin";
-  entrepriseId: string;
+  category: UserRole;
+  entrepriseId?: string;
   hedera_id: string;
 }
 

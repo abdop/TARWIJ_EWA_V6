@@ -1,5 +1,6 @@
 import { IDataSource } from "./dataSource";
 import { SingleFileDataSource } from "./singleFileDataSource";
+import type { UserCategory } from "../../../packages/shared/types";
 
 export interface Enterprise {
   id: string;
@@ -15,8 +16,8 @@ export interface User {
   name: string;
   email: string;
   role: string;
-  category: "ent_admin" | "decider" | "employee" | "platform_admin";
-  entrepriseId: string;
+  category: UserCategory;
+  entrepriseId?: string;
   hedera_id: string;
 }
 
@@ -241,6 +242,10 @@ class DataService {
 
   async getDltOperationsByType(type: string): Promise<DltOperation[]> {
     return this.dltOperationDataSource.query((op) => op.type === type);
+  }
+
+  async getDltOperationsByStatus(status: string): Promise<DltOperation[]> {
+    return this.dltOperationDataSource.query((op) => op.status === status);
   }
 
   async deleteDltOperation(id: string): Promise<boolean> {
