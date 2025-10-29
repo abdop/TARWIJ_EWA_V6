@@ -1,4 +1,5 @@
 import { useState } from "react";
+import EnterpriseCreationSuccessModal from "./EnterpriseCreationSuccessModal";
 
 interface EnterpriseInfo {
   name: string;
@@ -20,10 +21,17 @@ interface UserInfo {
   hederaAccountId: string;
 }
 
+interface CreationResult {
+  enterpriseId: string;
+  tokenId: string;
+  swapContractId: string;
+  transactionId: string;
+}
+
 interface AddEnterpriseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (enterpriseInfo: EnterpriseInfo, users: UserInfo[]) => Promise<void>;
+  onSubmit: (enterpriseInfo: EnterpriseInfo, admin: UserInfo, deciders: UserInfo[]) => Promise<CreationResult>;
 }
 
 export default function AddEnterpriseModal({
@@ -34,6 +42,8 @@ export default function AddEnterpriseModal({
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [creationProgress, setCreationProgress] = useState("");
+  const [creationResult, setCreationResult] = useState<CreationResult | null>(null);
 
   const [enterpriseInfo, setEnterpriseInfo] = useState<EnterpriseInfo>({
     name: "",
@@ -47,14 +57,15 @@ export default function AddEnterpriseModal({
     settlementDay: 1,
   });
 
-  const [users, setUsers] = useState<UserInfo[]>([
-    {
-      name: "",
-      email: "",
-      role: "",
-      category: "ent_admin",
-      hederaAccountId: "",
-    },
+  const [admin, setAdmin] = useState<UserInfo>({
+    name: "",
+    email: "",
+    role: "",
+    category: "ent_admin",
+    hederaAccountId: "",
+  });
+
+  const [deciders, setDeciders] = useState<UserInfo[]>([
     {
       name: "",
       email: "",
@@ -77,15 +88,19 @@ export default function AddEnterpriseModal({
     setEnterpriseInfo((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleUserChange = (index: number, field: keyof UserInfo, value: string) => {
-    const newUsers = [...users];
-    newUsers[index] = { ...newUsers[index], [field]: value };
-    setUsers(newUsers);
+  const handleAdminChange = (field: keyof UserInfo, value: string) => {
+    setAdmin((prev) => ({ ...prev, [field]: value }));
   };
 
-  const addUser = () => {
-    setUsers([
-      ...users,
+  const handleDeciderChange = (index: number, field: keyof UserInfo, value: string) => {
+    const newDeciders = [...deciders];
+    newDeciders[index] = { ...newDeciders[index], [field]: value };
+    setDeciders(newDeciders);
+  };
+
+  const addDecider = () => {
+    setDeciders([
+      ...deciders,
       {
         name: "",
         email: "",
@@ -96,9 +111,9 @@ export default function AddEnterpriseModal({
     ]);
   };
 
-  const removeUser = (index: number) => {
-    if (users.length > 3) {
-      setUsers(users.filter((_, i) => i !== index));
+  const removeDecider = (index: number) => {
+    if (deciders.length > 2) {
+      setDeciders(deciders.filter((_, i) => i !== index));
     }
   };
 
@@ -125,26 +140,31 @@ export default function AddEnterpriseModal({
   };
 
   const validateStep2 = () => {
-    const entAdmins = users.filter((u) => u.category === "ent_admin");
-    const deciders = users.filter((u) => u.category === "decider");
-
-    if (entAdmins.length === 0) {
-      setError("At least one enterprise admin is required");
+    if (!admin.name || !admin.email || !admin.role || !admin.hederaAccountId) {
+      setError("Please fill in all admin fields");
       return false;
     }
+    if (!admin.hederaAccountId.match(/^0\.0\.\d+$/)) {
+      setError("Invalid Hedera Account ID format for admin");
+      return false;
+    }
+    setError(null);
+    return true;
+  };
 
+  const validateStep3 = () => {
     if (deciders.length < 2) {
       setError("At least two deciders are required");
       return false;
     }
 
-    for (const user of users) {
-      if (!user.name || !user.email || !user.role || !user.hederaAccountId) {
-        setError("Please fill in all user fields");
+    for (const decider of deciders) {
+      if (!decider.name || !decider.email || !decider.role || !decider.hederaAccountId) {
+        setError("Please fill in all decider fields");
         return false;
       }
-      if (!user.hederaAccountId.match(/^0\.0\.\d+$/)) {
-        setError(`Invalid Hedera Account ID format for ${user.name}`);
+      if (!decider.hederaAccountId.match(/^0\.0\.\d+$/)) {
+        setError(`Invalid Hedera Account ID format for ${decider.name}`);
         return false;
       }
     }
@@ -154,87 +174,174 @@ export default function AddEnterpriseModal({
   };
 
   const handleNext = () => {
-    if (validateStep1()) {
+    if (step === 1 && validateStep1()) {
       setStep(2);
+    } else if (step === 2 && validateStep2()) {
+      setStep(3);
     }
   };
 
   const handleBack = () => {
-    setStep(1);
+    setStep(step - 1);
     setError(null);
   };
 
   const handleSubmit = async () => {
-    if (!validateStep2()) return;
+    if (!validateStep3()) return;
 
     setIsSubmitting(true);
     setError(null);
+    setCreationProgress("Initializing enterprise creation...");
 
     try {
-      await onSubmit(enterpriseInfo, users);
-      // Reset form
-      setStep(1);
-      setEnterpriseInfo({
-        name: "",
-        symbol: "",
-        address: "",
-        contactEmail: "",
-        bankAccount: "",
-        industry: "",
-        tokenName: "",
-        tokenSymbol: "",
-        settlementDay: 1,
-      });
-      setUsers([
-        {
-          name: "",
-          email: "",
-          role: "",
-          category: "ent_admin",
-          hederaAccountId: "",
-        },
-        {
-          name: "",
-          email: "",
-          role: "",
-          category: "decider",
-          hederaAccountId: "",
-        },
-        {
-          name: "",
-          email: "",
-          role: "",
-          category: "decider",
-          hederaAccountId: "",
-        },
-      ]);
-      onClose();
+      // Simulate progress updates
+      setTimeout(() => setCreationProgress("Creating enterprise token on Hedera..."), 1000);
+      setTimeout(() => setCreationProgress("Deploying swap smart contract..."), 3000);
+      setTimeout(() => setCreationProgress("Registering users..."), 5000);
+      setTimeout(() => setCreationProgress("Finalizing setup..."), 7000);
+
+      const result = await onSubmit(enterpriseInfo, admin, deciders);
+      setCreationResult(result);
+      setCreationProgress("");
     } catch (err: any) {
       setError(err.message || "Failed to create enterprise");
+      setCreationProgress("");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleCloseSuccess = () => {
+    // Reset form
+    setStep(1);
+    setEnterpriseInfo({
+      name: "",
+      symbol: "",
+      address: "",
+      contactEmail: "",
+      bankAccount: "",
+      industry: "",
+      tokenName: "",
+      tokenSymbol: "",
+      settlementDay: 1,
+    });
+    setAdmin({
+      name: "",
+      email: "",
+      role: "",
+      category: "ent_admin",
+      hederaAccountId: "",
+    });
+    setDeciders([
+      {
+        name: "",
+        email: "",
+        role: "",
+        category: "decider",
+        hederaAccountId: "",
+      },
+      {
+        name: "",
+        email: "",
+        role: "",
+        category: "decider",
+        hederaAccountId: "",
+      },
+    ]);
+    setCreationResult(null);
+    onClose();
+  };
+
+  // Show success modal if creation completed
+  if (creationResult) {
+    return (
+      <EnterpriseCreationSuccessModal
+        result={{
+          ...creationResult,
+          tokenName: enterpriseInfo.tokenName,
+          tokenSymbol: enterpriseInfo.tokenSymbol,
+        }}
+        onClose={handleCloseSuccess}
+      />
+    );
+  }
+
+  // Progress Bar Component
+  const ProgressBar = () => {
+    const steps = [
+      { number: 1, label: "Enterprise Info" },
+      { number: 2, label: "Admin" },
+      { number: 3, label: "Deciders" },
+    ];
+
+    return (
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          {steps.map((s, index) => (
+            <div key={s.number} className="flex items-center flex-1">
+              <div className="flex flex-col items-center">
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${
+                    step >= s.number
+                      ? "bg-primary text-white"
+                      : "bg-gray-700 text-gray-400"
+                  }`}
+                >
+                  {step > s.number ? (
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    s.number
+                  )}
+                </div>
+                <span
+                  className={`text-xs mt-2 font-medium ${
+                    step >= s.number ? "text-white" : "text-gray-500"
+                  }`}
+                >
+                  {s.label}
+                </span>
+              </div>
+              {index < steps.length - 1 && (
+                <div className="flex-1 h-0.5 mx-4 mb-6">
+                  <div
+                    className={`h-full transition-colors ${
+                      step > s.number ? "bg-primary" : "bg-gray-700"
+                    }`}
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-background-dark border border-gray-700 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-background-dark border border-gray-700 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Header */}
-        <div className="border-b border-gray-700 p-6">
-          <div className="flex items-center justify-between">
+        <div className="border-b border-gray-700 p-6 bg-background-light/10">
+          <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-white">Add New Enterprise</h2>
               <p className="text-sm text-gray-400 mt-1">
-                Step {step} of 2: {step === 1 ? "Enterprise Information" : "Users & Roles"}
+                Create a new enterprise with token and swap contract
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
+              disabled={isSubmitting}
+              className="text-gray-400 hover:text-white transition-colors disabled:opacity-50"
             >
-              <CloseIcon className="w-6 h-6" />
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
+          <ProgressBar />
         </div>
 
         {/* Content */}
@@ -242,6 +349,23 @@ export default function AddEnterpriseModal({
           {error && (
             <div className="mb-6 bg-red-500/10 border border-red-500/50 rounded-lg p-4">
               <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          )}
+
+          {isSubmitting && creationProgress && (
+            <div className="mb-6 bg-blue-500/10 border border-blue-500/50 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <svg className="animate-spin h-5 w-5 text-blue-400" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <div className="flex-1">
+                  <p className="text-blue-400 text-sm font-semibold">{creationProgress}</p>
+                  <div className="mt-2 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-full animate-pulse" style={{ width: "60%" }} />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -378,25 +502,85 @@ export default function AddEnterpriseModal({
             </div>
           )}
 
+          {/* Step 2: Enterprise Admin */}
           {step === 2 && (
-            <div className="space-y-4">
-              <p className="text-sm text-gray-400 mb-4">
-                Add at least one enterprise admin and two deciders. You can add more deciders using the + button.
-              </p>
+            <div className="space-y-6">
+              <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4 mb-6">
+                <p className="text-blue-400 text-sm">
+                  <strong>Step 2:</strong> Enter the enterprise administrator who will manage this enterprise.
+                </p>
+              </div>
 
-              {users.map((user, index) => (
+              <div className="bg-background-light/10 border border-gray-700 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Enterprise Administrator</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Name *</label>
+                    <input
+                      type="text"
+                      value={admin.name}
+                      onChange={(e) => handleAdminChange("name", e.target.value)}
+                      className="w-full bg-background-light/20 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      placeholder="John Doe"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Email *</label>
+                    <input
+                      type="email"
+                      value={admin.email}
+                      onChange={(e) => handleAdminChange("email", e.target.value)}
+                      className="w-full bg-background-light/20 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      placeholder="john@company.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Role *</label>
+                    <input
+                      type="text"
+                      value={admin.role}
+                      onChange={(e) => handleAdminChange("role", e.target.value)}
+                      className="w-full bg-background-light/20 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      placeholder="CEO, CFO, etc."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Hedera Account ID *</label>
+                    <input
+                      type="text"
+                      value={admin.hederaAccountId}
+                      onChange={(e) => handleAdminChange("hederaAccountId", e.target.value)}
+                      className="w-full bg-background-light/20 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors font-mono"
+                      placeholder="0.0.123456"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Deciders */}
+          {step === 3 && (
+            <div className="space-y-6">
+              <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4 mb-6">
+                <p className="text-blue-400 text-sm">
+                  <strong>Step 3:</strong> Add at least two deciders who will approve token minting operations.
+                </p>
+              </div>
+
+              {deciders.map((decider, index) => (
                 <div
                   key={index}
                   className="bg-background-light/10 border border-gray-700 rounded-lg p-4"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="text-sm font-semibold text-white">
-                      User {index + 1}
+                      Decider {index + 1}
                     </h4>
-                    {users.length > 3 && (
+                    {deciders.length > 2 && (
                       <button
-                        onClick={() => removeUser(index)}
-                        className="text-red-400 hover:text-red-300 text-sm"
+                        onClick={() => removeDecider(index)}
+                        className="text-red-400 hover:text-red-300 text-sm font-medium"
                       >
                         Remove
                       </button>
@@ -405,60 +589,43 @@ export default function AddEnterpriseModal({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Name *</label>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Name *</label>
                       <input
                         type="text"
-                        value={user.name}
-                        onChange={(e) => handleUserChange(index, "name", e.target.value)}
-                        className="w-full bg-background-dark border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-primary"
-                        placeholder="Full name"
+                        value={decider.name}
+                        onChange={(e) => handleDeciderChange(index, "name", e.target.value)}
+                        className="w-full bg-background-light/20 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                        placeholder="Jane Smith"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Email *</label>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Email *</label>
                       <input
                         type="email"
-                        value={user.email}
-                        onChange={(e) => handleUserChange(index, "email", e.target.value)}
-                        className="w-full bg-background-dark border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-primary"
-                        placeholder="email@example.com"
+                        value={decider.email}
+                        onChange={(e) => handleDeciderChange(index, "email", e.target.value)}
+                        className="w-full bg-background-light/20 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                        placeholder="jane@company.com"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Role *</label>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Role *</label>
                       <input
                         type="text"
-                        value={user.role}
-                        onChange={(e) => handleUserChange(index, "role", e.target.value)}
-                        className="w-full bg-background-dark border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-primary"
-                        placeholder="e.g., CEO, CFO"
+                        value={decider.role}
+                        onChange={(e) => handleDeciderChange(index, "role", e.target.value)}
+                        className="w-full bg-background-light/20 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                        placeholder="CFO, COO, etc."
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Category *</label>
-                      <select
-                        value={user.category}
-                        onChange={(e) =>
-                          handleUserChange(index, "category", e.target.value)
-                        }
-                        className="w-full bg-background-dark border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-primary"
-                      >
-                        <option value="ent_admin">Enterprise Admin</option>
-                        <option value="decider">Decider</option>
-                      </select>
-                    </div>
-                    <div className="col-span-2">
-                      <label className="block text-xs text-gray-400 mb-1">
-                        Hedera Account ID *
-                      </label>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Hedera Account ID *</label>
                       <input
                         type="text"
-                        value={user.hederaAccountId}
-                        onChange={(e) =>
-                          handleUserChange(index, "hederaAccountId", e.target.value)
-                        }
-                        className="w-full bg-background-dark border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-primary"
-                        placeholder="0.0.123456"
+                        value={decider.hederaAccountId}
+                        onChange={(e) => handleDeciderChange(index, "hederaAccountId", e.target.value)}
+                        className="w-full bg-background-light/20 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors font-mono"
+                        placeholder="0.0.789012"
                       />
                     </div>
                   </div>
@@ -466,24 +633,26 @@ export default function AddEnterpriseModal({
               ))}
 
               <button
-                onClick={addUser}
+                onClick={addDecider}
                 className="w-full border-2 border-dashed border-gray-600 rounded-lg py-3 text-gray-400 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
               >
-                <PlusIcon className="w-5 h-5" />
-                <span>Add Another User</span>
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Add Another Decider</span>
               </button>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-700 p-6 flex items-center justify-between">
+        <div className="border-t border-gray-700 p-6 flex items-center justify-between bg-background-light/5">
           <div className="flex gap-3">
-            {step === 2 && (
+            {step > 1 && (
               <button
                 onClick={handleBack}
                 disabled={isSubmitting}
-                className="px-6 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors disabled:opacity-50"
+                className="px-6 py-2.5 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors disabled:opacity-50 font-medium"
               >
                 Back
               </button>
@@ -493,14 +662,14 @@ export default function AddEnterpriseModal({
             <button
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-6 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors disabled:opacity-50"
+              className="px-6 py-2.5 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors disabled:opacity-50 font-medium"
             >
               Cancel
             </button>
-            {step === 1 ? (
+            {step < 3 ? (
               <button
                 onClick={handleNext}
-                className="px-6 py-2 bg-primary rounded-lg text-white hover:bg-primary/90 transition-colors"
+                className="px-6 py-2.5 bg-primary rounded-lg text-white hover:bg-primary/90 transition-colors font-medium"
               >
                 Next
               </button>
@@ -508,11 +677,14 @@ export default function AddEnterpriseModal({
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="px-6 py-2 bg-primary rounded-lg text-white hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="px-6 py-2.5 bg-primary rounded-lg text-white hover:bg-primary/90 transition-colors disabled:opacity-50 font-medium flex items-center gap-2"
               >
                 {isSubmitting ? (
                   <>
-                    <LoadingSpinner />
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
                     <span>Creating...</span>
                   </>
                 ) : (
@@ -524,42 +696,5 @@ export default function AddEnterpriseModal({
         </div>
       </div>
     </div>
-  );
-}
-
-function CloseIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  );
-}
-
-function PlusIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-    </svg>
-  );
-}
-
-function LoadingSpinner() {
-  return (
-    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-        fill="none"
-      />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-      />
-    </svg>
   );
 }

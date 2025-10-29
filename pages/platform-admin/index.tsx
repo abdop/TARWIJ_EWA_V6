@@ -24,7 +24,7 @@ export default function PlatformAdminDashboard() {
     error: overviewError,
     refresh: refreshOverview,
   } = usePlatformOverview({
-    enabled: isConnected,
+    enabled: isConnected ? true : false,
     refreshIntervalMs: 60_000,
   });
 

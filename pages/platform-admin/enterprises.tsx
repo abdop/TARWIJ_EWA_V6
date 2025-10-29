@@ -30,7 +30,7 @@ export default function EnterpriseDirectoryPage() {
     loading,
     error,
     refresh,
-  } = usePlatformOverview({ enabled: isConnected, refreshIntervalMs: 60_000 });
+  } = usePlatformOverview({ enabled: isConnected ? true : false, refreshIntervalMs: 60_000 });
 
   const enterpriseStats = useMemo(() => {
     if (!overview) {
@@ -77,9 +77,12 @@ export default function EnterpriseDirectoryPage() {
       .slice(0, 5);
   }, [overview]);
 
-  const handleCreateEnterprise = async (enterpriseInfo: any, users: any[]) => {
+  const handleCreateEnterprise = async (enterpriseInfo: any, admin: any, deciders: any[]) => {
     setIsSubmitting(true);
     try {
+      // Combine admin and deciders into users array for API
+      const users = [admin, ...deciders];
+      
       const response = await fetch('/api/enterprise/create', {
         method: 'POST',
         headers: {
@@ -88,19 +91,23 @@ export default function EnterpriseDirectoryPage() {
         body: JSON.stringify({ enterpriseInfo, users }),
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
-      if (!data.success) {
-        throw new Error(data.details || data.error || 'Failed to create enterprise');
+      if (!result.success) {
+        throw new Error(result.details || result.error || 'Failed to create enterprise');
       }
 
-      setNotification({
-        type: 'success',
-        message: `Enterprise "${enterpriseInfo.name}" created successfully!`,
-      });
-      setIsModalOpen(false);
+      // Refresh data in background (don't close modal yet - success modal will handle it)
       setListVersion((current) => current + 1);
       refresh();
+
+      // Return the creation result for the success modal
+      return {
+        enterpriseId: result.data?.enterprise?.id || '',
+        tokenId: result.data?.token?.tokenId || '0.0.0',
+        swapContractId: result.data?.swapContractId || result.data?.token?.swapContractId || '0.0.0',
+        transactionId: result.data?.transactionIds?.tokenCreation || result.data?.transactionIds?.[0] || '',
+      };
     } catch (err: any) {
       setNotification({
         type: 'error',
