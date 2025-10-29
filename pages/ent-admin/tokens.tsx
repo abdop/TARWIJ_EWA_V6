@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
+
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import { RootState } from '../../src/store';
@@ -36,14 +37,11 @@ export default function TokensPage() {
   const router = useRouter();
   const { user, accountId, isConnected } = useSelector((state: RootState) => state.hashconnect);
   const enterpriseId = user?.entrepriseId;
-  const [showMintModal, setShowMintModal] = useState(false);
-  const [mintAmount, setMintAmount] = useState('');
 
   const {
     data: overview,
     loading: overviewLoading,
     error: overviewError,
-    refresh: refreshOverview,
   } = useEnterpriseOverview(enterpriseId, {
     enabled: Boolean(enterpriseId),
     refreshIntervalMs: 60000,
@@ -73,18 +71,6 @@ export default function TokensPage() {
 
   const formatAmount = (value?: number) =>
     typeof value === 'number' && Number.isFinite(value) ? `${value.toLocaleString()} WAT` : '—';
-
-  const handleMint = () => {
-    // Implement mint functionality
-    console.log('Minting', mintAmount, 'tokens');
-    setShowMintModal(false);
-    setMintAmount('');
-  };
-
-  const handlePauseToggle = () => {
-    // Implement pause/unpause functionality
-    console.log('Toggle pause');
-  };
 
   return (
     <>
@@ -221,48 +207,14 @@ export default function TokensPage() {
                       </div>
                     )}
 
-                    {/* Action Buttons */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <button
-                        onClick={() => setShowMintModal(true)}
-                        className="group rounded-2xl border border-gray-700/50 bg-gradient-to-br from-primary/20 to-primary/5 p-6 hover:scale-105 hover:shadow-2xl hover:shadow-primary/20 transition-all"
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
-                            <PlusIcon className="w-6 h-6 text-primary" />
-                          </div>
-                          <ArrowRightIcon className="w-5 h-5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-white mb-1">Mint Tokens</h3>
-                        <p className="text-sm text-gray-400">Create new tokens and add to supply</p>
-                      </button>
-
-                      <button
-                        onClick={handlePauseToggle}
-                        className="group rounded-2xl border border-gray-700/50 bg-gradient-to-br from-amber-500/20 to-amber-500/5 p-6 hover:scale-105 hover:shadow-2xl hover:shadow-amber-500/20 transition-all"
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center group-hover:bg-amber-500/30 transition-colors">
-                            <PauseIcon className="w-6 h-6 text-amber-400" />
-                          </div>
-                          <ArrowRightIcon className="w-5 h-5 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-white mb-1">
-                          {tokenInfo?.status === 'active' ? 'Pause Token' : 'Unpause Token'}
-                        </h3>
-                        <p className="text-sm text-gray-400">Temporarily halt all token operations</p>
-                      </button>
-
-                      <button className="group rounded-2xl border border-gray-700/50 bg-gradient-to-br from-blue-500/20 to-blue-500/5 p-6 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 transition-all">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
-                            <SettingsIcon className="w-6 h-6 text-blue-400" />
-                          </div>
-                          <ArrowRightIcon className="w-5 h-5 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-white mb-1">Token Settings</h3>
-                        <p className="text-sm text-gray-400">Configure token parameters and keys</p>
-                      </button>
+                    {/* Token administration notice */}
+                    <div className="rounded-2xl border border-gray-700/50 bg-background-dark/60 p-6">
+                      <h3 className="text-lg font-semibold text-white">Token administration is handled by TARWIJ EWA</h3>
+                      <p className="mt-3 text-sm text-gray-400 leading-relaxed">
+                        Enterprise admins have read-only visibility of token balances and recent activity. Minting, pausing, and other
+                        configuration changes are coordinated by the TARWIJ EWA platform team. Please contact your platform administrator
+                        if you need to request an update.
+                      </p>
                     </div>
 
                     {/* Transaction History */}
@@ -340,59 +292,6 @@ export default function TokensPage() {
             </div>
           </main>
         </div>
-
-        {/* Mint Modal */}
-        {showMintModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-background-dark border border-gray-700 rounded-2xl p-8 max-w-md w-full shadow-2xl">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-white">Mint Tokens</h3>
-                <button
-                  onClick={() => setShowMintModal(false)}
-                  className="w-8 h-8 rounded-lg bg-gray-800 hover:bg-gray-700 flex items-center justify-center transition-colors"
-                >
-                  <XIcon className="w-5 h-5 text-gray-400" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Amount to Mint
-                  </label>
-                  <input
-                    type="number"
-                    value={mintAmount}
-                    onChange={(e) => setMintAmount(e.target.value)}
-                    placeholder="Enter amount..."
-                    className="w-full px-4 py-3 bg-background-light/10 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                  />
-                </div>
-
-                <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
-                  <p className="text-xs text-gray-400 mb-1">Current Treasury Balance</p>
-                  <p className="text-xl font-bold text-primary">{tokenInfo?.treasuryBalance.toLocaleString()} WAT</p>
-                </div>
-
-                <div className="flex gap-3 mt-6">
-                  <button
-                    onClick={() => setShowMintModal(false)}
-                    className="flex-1 px-4 py-3 rounded-lg bg-gray-800 hover:bg-gray-700 text-white font-medium transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleMint}
-                    disabled={!mintAmount || parseFloat(mintAmount) <= 0}
-                    className="flex-1 px-4 py-3 rounded-lg bg-primary hover:bg-primary/80 text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Mint Tokens
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );
