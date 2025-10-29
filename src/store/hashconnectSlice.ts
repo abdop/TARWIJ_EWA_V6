@@ -11,7 +11,7 @@ interface User {
 }
 
 interface HashConnectState {
-  isConnected: boolean;
+  isConnected: boolean | null;
   accountId: string | null;
   isLoading: boolean;
   error: string | null;
@@ -20,7 +20,7 @@ interface HashConnectState {
 }
 
 const initialState: HashConnectState = {
-  isConnected: false,
+  isConnected: null,
   accountId: null,
   isLoading: false,
   error: null,
@@ -36,6 +36,7 @@ const hashconnectSlice = createSlice({
       state.isLoading = action.payload;
       if (action.payload) {
         state.error = null;
+        state.isConnected = null;
       }
     },
     setConnected: (state, action: PayloadAction<{ accountId: string; user?: User }>) => {

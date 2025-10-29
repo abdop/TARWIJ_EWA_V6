@@ -1783,39 +1783,6 @@
       "id": "dlt_1761595890394_mupjrqwwc",
       "transactionId": "0.0.6976406@1761595883.896564598",
       "completedAt": "2025-10-27T20:11:30.394Z"
-    },
-    {
-      "type": "WAGE_ADVANCE_REQUEST_CREATED",
-      "status": "SUCCESS",
-      "userId": "user_1761596193065_ush9wrj8d",
-      "entrepriseId": "ent_1761595882582_4nekgoiv0",
-      "tokenId": "0.0.7146869",
-      "details": {
-        "requestId": "wage_adv_1761596536447_kwxvqawwq",
-        "requestedAmount": 50000,
-        "employeeName": "red"
-      },
-      "createdAt": "2025-10-27T20:22:16.450Z",
-      "id": "dlt_1761596536450_tpw56j8tj",
-      "completedAt": "2025-10-27T20:22:16.450Z"
-    },
-    {
-      "type": "SCHEDULED_MINT_CREATED",
-      "status": "SUCCESS",
-      "userId": "user_1761596193065_ush9wrj8d",
-      "entrepriseId": "ent_1761595882582_4nekgoiv0",
-      "tokenId": "0.0.7146869",
-      "details": {
-        "requestId": "wage_adv_1761596536447_kwxvqawwq",
-        "scheduledTransactionId": "0.0.7146910",
-        "amount": 50000,
-        "expirationTime": "2025-10-30T20:22:41.136Z",
-        "requiredSignatures": 3
-      },
-      "createdAt": "2025-10-27T20:22:41.136Z",
-      "id": "dlt_1761596561136_uuyavd4yl",
-      "transactionId": "0.0.6976406@1761596551.725156446",
-      "completedAt": "2025-10-27T20:22:41.136Z"
     }
   ],
   "wage_advance_requests": [
@@ -2025,17 +1992,17 @@
       "rejectedBy": "user_002"
     },
     {
-      "id": "wage_adv_1761596536447_kwxvqawwq",
-      "employeeId": "user_1761596193065_ush9wrj8d",
-      "entrepriseId": "ent_1761595882582_4nekgoiv0",
-      "tokenId": "0.0.7146869",
-      "requestedAmount": 50000,
+      "id": "wage_adv_1761662719135_6l8r0f959",
+      "employeeId": "user_006",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "requestedAmount": 1000,
       "status": "pending_signature",
-      "createdAt": "2025-10-27T20:22:16.447Z",
-      "updatedAt": "2025-10-27T20:22:41.129Z",
-      "scheduledTransactionId": "0.0.7146910",
-      "deleteKey": "302e020100300506032b6570042204205836d70e98ef26cb631af1f849aa820dc8207c88d5e78b3ffb2fab0cf989bee6",
-      "memo": "wage_advance:wage_adv_1761596536447_kwxvqawwq",
+      "createdAt": "2025-10-28T14:45:19.135Z",
+      "updatedAt": "2025-10-28T14:45:21.787Z",
+      "scheduledTransactionId": "0.0.7150796",
+      "deleteKey": "302e020100300506032b65700422042091b3b17af71544147c77aed63171c8c1518e02c8d20edec75664ed778df8ca03",
+      "memo": "wage_advance:wage_adv_1761662719135_6l8r0f959",
       "deciderApprovals": []
     }
   ]

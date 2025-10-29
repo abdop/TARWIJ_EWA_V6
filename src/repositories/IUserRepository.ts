@@ -17,6 +17,7 @@ export interface IUserRepository {
   findById(id: string): Promise<User | undefined>;
   findByEnterprise(enterpriseId: string): Promise<User[]>;
   findByCategory(enterpriseId: string, category: string): Promise<User[]>;
+  findByHederaId(hederaId: string): Promise<User | undefined>;
   findAll(): Promise<User[]>;
   create(user: User): Promise<User>;
   update(id: string, updates: Partial<User>): Promise<User | undefined>;

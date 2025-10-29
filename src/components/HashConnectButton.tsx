@@ -1,8 +1,10 @@
 import React from 'react';
+import { useRouter } from 'next/router';
 import useHashConnect from '../hooks/useHashConnect';
 import styles from './HashConnectButton.module.css';
 
 const HashConnectButton: React.FC = () => {
+  const router = useRouter();
   const { isConnected, accountId, isLoading, error, connect, disconnect } = useHashConnect();
 
   const formatAccountId = (id: string) => {
@@ -44,7 +46,10 @@ const HashConnectButton: React.FC = () => {
           </div>
           <button
             className={styles.disconnectButton}
-            onClick={disconnect}
+            onClick={() => {
+              disconnect();
+              router.push('/');
+            }}
           >
             Disconnect
           </button>

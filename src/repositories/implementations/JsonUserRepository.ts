@@ -21,6 +21,10 @@ export class JsonUserRepository implements IUserRepository {
     return dataService.getUsersByCategory(enterpriseId, category);
   }
 
+  async findByHederaId(hederaId: string): Promise<User | undefined> {
+    return dataService.getUserByHederaId(hederaId);
+  }
+
   async findAll(): Promise<User[]> {
     return dataService.getAllUsers();
   }
