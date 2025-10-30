@@ -369,6 +369,13 @@ export default function ShopAdminDashboard() {
                   <ShopIcon className="h-5 w-5" />
                   Sales
                 </button>
+                <button
+                  onClick={() => router.push('/shop-admin/swap')}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-gray-400 hover:text-white hover:bg-background-light/20 rounded-lg transition"
+                >
+                  <SwapIcon className="h-5 w-5" />
+                  Token Swap
+                </button>
               </nav>
             </div>
           </aside>
@@ -399,8 +406,9 @@ export default function ShopAdminDashboard() {
                         <p className="text-primary font-semibold capitalize">{user.category?.replace(/_/g, ' ')}</p>
                       </div>
                       <div>
-                        <span className="text-gray-400">Enterprise</span>
-                        <p className="text-white font-semibold">{user.entrepriseId ?? '—'}</p>
+                        <span className="text-gray-400">Shop</span>
+                        {/*TODO: Add enterprise shop ID */}
+                        <p className="text-white font-semibold">{'—'}</p>
                       </div>
                     </div>
                   </section>
@@ -676,4 +684,8 @@ function UsersIcon(props: React.SVGProps<SVGSVGElement>) {
 
 function ShopIcon(props: React.SVGProps<SVGSVGElement>) {
   return <svg viewBox="0 0 24 24" fill="currentColor" {...props}><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z" /></svg>;
+}
+
+function SwapIcon(props: React.SVGProps<SVGSVGElement>) {
+  return <svg viewBox="0 0 24 24" fill="currentColor" {...props}><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
