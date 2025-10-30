@@ -44,8 +44,6 @@ export default function SalesPage() {
   const [catalogTokens, setCatalogTokens] = useState<EcosystemToken[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(false);
 
-  const [selectedToken, setSelectedToken] = useState<EcosystemToken | null>(null);
-  const [employeeAccount, setEmployeeAccount] = useState('');
   const [amountInput, setAmountInput] = useState('');
   const [memoInput, setMemoInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -83,15 +81,12 @@ export default function SalesPage() {
 
       const associated = (data.tokens || []).filter((t: EcosystemToken) => t.isAssociated);
       setCatalogTokens(associated);
-      if (associated.length > 0 && !selectedToken) {
-        setSelectedToken(associated[0]);
-      }
     } catch (error: any) {
       console.error('Failed to load token catalog:', error);
     } finally {
       setCatalogLoading(false);
     }
-  }, [accountId, selectedToken]);
+  }, [accountId]);
 
   useEffect(() => {
     if (accountId) {
@@ -151,12 +146,13 @@ export default function SalesPage() {
   }, [accountId, catalogTokens, loadSales]);
 
   const amountInTinyUnits = useMemo(() => {
-    if (!amountInput || !selectedToken) return null;
+    if (!amountInput) return null;
     const parsed = Number(amountInput);
     if (Number.isNaN(parsed) || parsed <= 0) return null;
-    const multiplier = Math.pow(10, selectedToken.decimals ?? 2);
+    // Use 2 decimals as standard (employee's token decimals will be used during payment)
+    const multiplier = Math.pow(10, 2);
     return Math.round(parsed * multiplier);
-  }, [amountInput, selectedToken]);
+  }, [amountInput]);
 
   const decodeTransactionBytes = useCallback((base64: string) => {
     if (typeof window !== 'undefined' && window.atob) {
@@ -174,10 +170,6 @@ export default function SalesPage() {
   const handleGenerateQR = useCallback(async () => {
     if (!accountId) {
       setSubmissionError('Connect your wallet before generating payment request.');
-      return;
-    }
-    if (!selectedToken) {
-      setSubmissionError('Select a token.');
       return;
     }
     if (!amountInTinyUnits || amountInTinyUnits <= 0) {
@@ -199,7 +191,6 @@ export default function SalesPage() {
           shopAccountId: accountId,
           amount: amountInTinyUnits,
           memo: memoInput.trim() || `Purchase at ${new Date().toLocaleString()}`,
-          tokenId: selectedToken.tokenId,
         }),
       });
 
@@ -230,7 +221,7 @@ export default function SalesPage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [accountId, selectedToken, amountInTinyUnits, memoInput]);
+  }, [accountId, amountInTinyUnits, memoInput]);
 
   return (
     <>
@@ -299,35 +290,12 @@ export default function SalesPage() {
                 <section className="bg-background-light/10 border border-gray-700 rounded-xl p-6 space-y-6">
                   <header>
                     <h3 className="text-xl font-semibold text-white">Create Payment Request</h3>
-                    <p className="text-sm text-gray-400">Generate a QR code for customers to scan and pay</p>
+                    <p className="text-sm text-gray-400">Generate a QR code for customers to scan and pay with their enterprise token</p>
                   </header>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-sm text-gray-400">Token</label>
-                      <select
-                        value={selectedToken?.tokenId || ''}
-                        onChange={(e) => {
-                          const token = catalogTokens.find((t) => t.tokenId === e.target.value);
-                          setSelectedToken(token || null);
-                        }}
-                        disabled={catalogLoading || catalogTokens.length === 0 || !!qrCodeUrl}
-                        className="w-full rounded-lg bg-background-dark/60 border border-gray-700 px-4 py-2 text-sm text-white focus:border-primary focus:outline-none disabled:opacity-50"
-                      >
-                        {catalogTokens.length === 0 ? (
-                          <option>No tokens available</option>
-                        ) : (
-                          catalogTokens.map((token) => (
-                            <option key={token.tokenId} value={token.tokenId}>
-                              {token.symbol} - {token.name}
-                            </option>
-                          ))
-                        )}
-                      </select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm text-gray-400">Amount ({selectedToken?.symbol ?? 'tokens'})</label>
+                      <label className="text-sm text-gray-400">Amount</label>
                       <input
                         value={amountInput}
                         onChange={(event) => setAmountInput(event.target.value)}
@@ -338,9 +306,9 @@ export default function SalesPage() {
                         disabled={!!qrCodeUrl}
                         className="w-full rounded-lg bg-background-dark/60 border border-gray-700 px-4 py-2 text-sm text-white focus:border-primary focus:outline-none disabled:opacity-50"
                       />
-                      {amountInTinyUnits && selectedToken && (
+                      {amountInTinyUnits && (
                         <p className="text-xs text-gray-500">
-                          {amountInTinyUnits.toLocaleString()} units @ 10^{selectedToken.decimals}
+                          {amountInTinyUnits.toLocaleString()} units (customer's token will be used)
                         </p>
                       )}
                     </div>
@@ -411,7 +379,7 @@ export default function SalesPage() {
                     <button
                       type="button"
                       onClick={handleGenerateQR}
-                      disabled={isSubmitting || !isConnected || !selectedToken || !!qrCodeUrl}
+                      disabled={isSubmitting || !isConnected || !!qrCodeUrl}
                       className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-background-dark transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {isSubmitting ? (

@@ -7,11 +7,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const dltOpRepo = getDltOperationRepository();
 
   if (req.method === 'POST') {
-    const { shopAccountId, amount, memo, tokenId } = req.body as {
+    const { shopAccountId, amount, memo } = req.body as {
       shopAccountId?: string;
       amount?: number;
       memo?: string;
-      tokenId?: string;
     };
 
     if (!shopAccountId || !amount || amount <= 0) {
@@ -34,9 +33,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: requestId,
         shopAccountId,
         shopName: shopUser.name,
+        shopId: shopUser.shopId || shopUser.id,
         amount,
         memo: memo || 'Shop purchase',
-        tokenId: tokenId || null,
         status: 'PENDING',
         createdAt: new Date().toISOString(),
         expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes

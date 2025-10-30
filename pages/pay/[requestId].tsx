@@ -16,9 +16,9 @@ interface PaymentRequest {
   id: string;
   shopAccountId: string;
   shopName: string;
+  shopId: string;
   amount: number;
   memo: string;
-  tokenId: string | null;
   status: string;
   createdAt: string;
   expiresAt: string;
