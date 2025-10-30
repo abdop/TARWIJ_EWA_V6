@@ -20,7 +20,7 @@ export default async function handler(
   }
 
   try {
-    const { requestId, deciderId, approved, rejectionReason } = req.body;
+    const { requestId, deciderId, approved, rejectionReason, transactionId } = req.body;
 
     if (!requestId || !deciderId || approved === undefined) {
       return res.status(400).json({ 
@@ -103,7 +103,10 @@ export default async function handler(
         'decider'
       );
 
-      if (updatedApprovals.length === allDeciders.length) {
+      const isFullyApproved = updatedApprovals.length === allDeciders.length;
+      const remainingSignatures = allDeciders.length - updatedApprovals.length;
+
+      if (isFullyApproved) {
         // All approved - trigger transfer
         // This will be handled by a background job or webhook
         // For now, we'll call it directly
@@ -122,8 +125,12 @@ export default async function handler(
       return res.status(200).json({
         success: true,
         action: 'approved',
+        scheduleId: request.scheduledTransactionId,
+        transactionId: transactionId || '',
         approvalsCount: updatedApprovals.length,
         requiredApprovals: allDeciders.length,
+        isFullyApproved,
+        remainingSignatures,
       });
     } else {
       // Rejection - execute ScheduleDelete with backend (wallet doesn't support it)

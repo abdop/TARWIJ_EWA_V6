@@ -6,9 +6,17 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
+import WageAdvanceSuccessModal from './WageAdvanceSuccessModal';
 
 interface WageAdvanceRequestProps {
   onSuccess?: () => void;
+}
+
+interface SuccessResult {
+  requestId: string;
+  scheduleId: string;
+  transactionId: string;
+  amount: number;
 }
 
 export default function WageAdvanceRequest({ onSuccess }: WageAdvanceRequestProps) {
@@ -16,13 +24,13 @@ export default function WageAdvanceRequest({ onSuccess }: WageAdvanceRequestProp
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [successResult, setSuccessResult] = useState<SuccessResult | null>(null);
   const [step, setStep] = useState<'input' | 'associating' | 'creating' | 'done'>('input');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
+    setSuccessResult(null);
     setLoading(true);
 
     try {
@@ -115,12 +123,16 @@ export default function WageAdvanceRequest({ onSuccess }: WageAdvanceRequestProp
       }
 
       setStep('done');
-      setSuccess(`Wage advance request submitted successfully! Request ID: ${requestId}`);
-      setAmount('');
       
-      if (onSuccess) {
-        onSuccess();
-      }
+      // Show success modal with schedule details
+      setSuccessResult({
+        requestId,
+        scheduleId: scheduleData.scheduleId || scheduleData.schedule?.scheduleId || '0.0.0',
+        transactionId: scheduleData.transactionId || scheduleData.schedule?.transactionId || '',
+        amount: requestedAmount,
+      });
+      
+      setAmount('');
     } catch (err: any) {
       console.error('Error requesting wage advance:', err);
       setError(err.message || 'Failed to request wage advance');
@@ -129,6 +141,19 @@ export default function WageAdvanceRequest({ onSuccess }: WageAdvanceRequestProp
     }
   };
 
+  const handleCloseSuccess = () => {
+    setSuccessResult(null);
+    setStep('input');
+    if (onSuccess) {
+      onSuccess();
+    }
+  };
+
+  // Show success modal if request completed
+  if (successResult) {
+    return <WageAdvanceSuccessModal result={successResult} onClose={handleCloseSuccess} />;
+  }
+
   return (
     <div className="bg-background-light/10 border border-gray-700 rounded-xl p-6">
       <h3 className="text-xl font-semibold text-white mb-4">Request Wage Advance</h3>
@@ -136,12 +161,6 @@ export default function WageAdvanceRequest({ onSuccess }: WageAdvanceRequestProp
       {error && (
         <div className="mb-4 p-4 bg-red-500/10 border border-red-500/40 rounded-lg text-red-300 text-sm">
           {error}
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-4 p-4 bg-primary/10 border border-primary/40 rounded-lg text-primary text-sm">
-          {success}
         </div>
       )}
 

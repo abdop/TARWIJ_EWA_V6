@@ -198,7 +198,7 @@ export class WageAdvanceService {
   async createScheduledMint(
     requestId: string,
     expirationHoursDelay = 72
-  ): Promise<string> {
+  ): Promise<{ scheduleId: string; transactionId: string }> {
     const wageAdvanceRepo = getWageAdvanceRepository();
     const tokenRepo = getEnterpriseTokenRepository();
     const userRepo = getUserRepository();
@@ -306,6 +306,7 @@ export class WageAdvanceService {
 
     console.log(`✓ Scheduled mint transaction created`);
     console.log(`  Schedule ID: ${scheduledTransactionId.toString()}`);
+    console.log(`  Transaction ID: ${scheduleTransaction.transactionId.toString()}`);
     console.log(`  Amount: ${request.requestedAmount} tokens`);
     console.log(`  Required signatures: ${deciders.length}\n`);
 
@@ -321,7 +322,10 @@ export class WageAdvanceService {
       );
     }
 
-    return scheduledTransactionId.toString();
+    return {
+      scheduleId: scheduledTransactionId.toString(),
+      transactionId: scheduleTransaction.transactionId.toString(),
+    };
   }
 
   /**

@@ -36,11 +36,12 @@ export default async function handler(
     }
 
     // Create scheduled mint transaction
-    const scheduledTxId = await wageAdvanceService.createScheduledMint(requestId);
+    const result = await wageAdvanceService.createScheduledMint(requestId);
 
     return res.status(200).json({
       success: true,
-      scheduledTransactionId: scheduledTxId,
+      scheduleId: result.scheduleId,
+      transactionId: result.transactionId,
     });
   } catch (error: any) {
     console.error('Error creating scheduled mint:', error);

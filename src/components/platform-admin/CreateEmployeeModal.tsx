@@ -110,11 +110,11 @@ export default function CreateEmployeeModal({ enterprises, onClose, onSuccess }:
             <select
               value={formData.entrepriseId}
               onChange={(e) => setFormData({ ...formData, entrepriseId: e.target.value })}
-              className="w-full bg-background-light/20 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+              className="w-full bg-background-light/20 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
               required
             >
               {enterprises.map((ent) => (
-                <option key={ent.id} value={ent.id}>
+                <option key={ent.id} value={ent.id} className="bg-background-dark text-white">
                   {ent.name} ({ent.symbol})
                 </option>
               ))}

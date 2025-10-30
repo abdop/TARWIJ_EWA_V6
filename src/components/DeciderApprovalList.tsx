@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
+import DeciderApprovalSuccessModal from './DeciderApprovalSuccessModal';
 
 interface WageAdvanceRequest {
   id: string;
@@ -24,12 +25,23 @@ interface WageAdvanceRequest {
   }>;
 }
 
+interface ApprovalResult {
+  requestId: string;
+  scheduleId: string;
+  transactionId: string;
+  employeeName: string;
+  amount: number;
+  isFullyApproved: boolean;
+  remainingSignatures: number;
+}
+
 export default function DeciderApprovalList() {
   const { user, accountId } = useSelector((state: RootState) => state.hashconnect);
   const [requests, setRequests] = useState<WageAdvanceRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [approvalResult, setApprovalResult] = useState<ApprovalResult | null>(null);
 
   useEffect(() => {
     if (user && user.category === 'decider') {
@@ -84,6 +96,7 @@ export default function DeciderApprovalList() {
       }
 
       // Step 2: Sign the transaction with HashConnect wallet (only for approval)
+      let signatureTransactionId = '';
       if (prepareData.requiresWalletSignature !== false) {
         console.log('Requesting wallet signature...');
         const { executeTransaction } = await import('../services/hashconnect');
@@ -100,6 +113,11 @@ export default function DeciderApprovalList() {
         // Sign and execute with wallet
         const result = await executeTransaction(accountId, transaction);
         console.log('Transaction signed and executed:', result);
+        
+        // Capture transaction ID from the transaction itself
+        if (transaction.transactionId) {
+          signatureTransactionId = transaction.transactionId.toString();
+        }
 
         // Wait a moment for transaction to be processed
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -118,6 +136,7 @@ export default function DeciderApprovalList() {
           deciderId: user.id,
           approved,
           rejectionReason,
+          transactionId: signatureTransactionId,
         }),
       });
 
@@ -127,10 +146,25 @@ export default function DeciderApprovalList() {
       }
 
       console.log(`Decision ${approved ? 'approved' : 'rejected'} successfully`);
-      alert(`Request ${approved ? 'approved' : 'rejected'} successfully!`);
 
-      // Refresh the list
-      await fetchPendingRequests();
+      // Show success modal for approvals
+      if (approved && submitData.transactionId) {
+        const request = requests.find(r => r.id === requestId);
+        setApprovalResult({
+          requestId,
+          scheduleId: submitData.scheduleId || request?.scheduledTransactionId || '0.0.0',
+          transactionId: submitData.transactionId,
+          employeeName: request?.employeeName || 'Employee',
+          amount: request?.requestedAmount || 0,
+          isFullyApproved: submitData.isFullyApproved || false,
+          remainingSignatures: submitData.remainingSignatures || 0,
+        });
+      } else {
+        // For rejections, just show alert
+        alert(`Request ${approved ? 'approved' : 'rejected'} successfully!`);
+        // Refresh the list
+        await fetchPendingRequests();
+      }
     } catch (err: any) {
       console.error('Error processing decision:', err);
       setError(err.message || 'Failed to process decision');
@@ -149,6 +183,17 @@ export default function DeciderApprovalList() {
       handleDecision(requestId, false, reason);
     }
   };
+
+  const handleCloseSuccess = async () => {
+    setApprovalResult(null);
+    // Refresh the list after closing success modal
+    await fetchPendingRequests();
+  };
+
+  // Show success modal if approval completed
+  if (approvalResult) {
+    return <DeciderApprovalSuccessModal result={approvalResult} onClose={handleCloseSuccess} />;
+  }
 
   if (loading) {
     return (
