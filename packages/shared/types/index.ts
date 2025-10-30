@@ -17,6 +17,7 @@ export interface User {
   role: string;
   category: UserRole;
   entrepriseId?: string;
+  shopId?: string;
   hedera_id: string;
 }
 

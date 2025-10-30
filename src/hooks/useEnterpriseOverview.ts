@@ -185,6 +185,8 @@ export interface EmployeeOverviewSummary {
     approvedCount: number;
     rejectedCount: number;
     lifetimeAdvanced: number;
+    currentBalance: number;
+    totalShopPayments: number;
     pendingAmount: number;
     lastRequestAt: string | null;
   };

@@ -41,10 +41,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(403).json({ success: false, error: 'Only employees can access this resource' });
     }
 
-    const [requests, token, operations] = await Promise.all([
+    const [requests, token, operations, allOperations] = await Promise.all([
       wageRepo.findByEmployee(employee.id),
-      tokenRepo.findByEnterpriseId(employee.entrepriseId),
+      employee.entrepriseId ? tokenRepo.findByEnterpriseId(employee.entrepriseId) : Promise.resolve(null),
       dltRepo.findByUser(employee.id),
+      dltRepo.findAll(), // Get all operations to find shop payments by employee account
     ]);
 
     const pendingRequests = requests.filter((request) => PENDING_STATUSES.has(request.status));
@@ -57,12 +58,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         new Date(a.updatedAt || a.createdAt).getTime()
     );
 
+    // Calculate total shop payments (deductions from balance)
+    // Shop payments have the shop as userId, so we need to search by employeeAccountId in details
+    const shopPayments = allOperations.filter(
+      (op) =>
+        op.type === 'SHOP_ACCEPT_TOKEN_PREPARED' &&
+        op.status === 'SUCCESS' &&
+        op.details?.employeeAccountId === employee.hedera_id
+    );
+    const totalShopPayments = shopPayments.reduce(
+      (sum, op) => sum + (op.details?.amount || 0),
+      0
+    );
+
+    const lifetimeAdvanced = sumAmounts(completedRequests);
+    const currentBalance = Math.max(0, lifetimeAdvanced - totalShopPayments);
+
     const stats = {
       totalRequests: requests.length,
       pendingCount: pendingRequests.length,
       approvedCount: completedRequests.length,
       rejectedCount: rejectedRequests.length,
-      lifetimeAdvanced: sumAmounts(completedRequests),
+      lifetimeAdvanced,
+      currentBalance,
+      totalShopPayments,
       pendingAmount: sumAmounts(pendingRequests),
       lastRequestAt:
         sortedRequests.length > 0

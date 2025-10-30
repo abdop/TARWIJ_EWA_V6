@@ -89,9 +89,8 @@ export default function EmployeeWalletPage() {
     return typeof nameCandidate === 'string' ? nameCandidate : null;
   };
 
-  const availableBalance = overview
-    ? Math.max((overview.stats.lifetimeAdvanced ?? 0) - (overview.stats.pendingAmount ?? 0), 0)
-    : null;
+  const currentBalance = overview?.stats.currentBalance ?? null;
+  const totalSpent = overview?.stats.totalShopPayments ?? null;
 
   const tokenCards = useMemo(
     () => [
@@ -101,17 +100,17 @@ export default function EmployeeWalletPage() {
         helper: 'Approved wage advances delivered to your wallet',
       },
       {
-        label: 'Pending Amount',
-        value: formatAmount(overview?.stats.pendingAmount ?? null),
-        helper: 'Awaiting approval or signature',
+        label: 'Current Balance',
+        value: formatAmount(currentBalance),
+        helper: 'Available balance after shop payments',
       },
       {
-        label: 'Estimated Available',
-        value: formatAmount(availableBalance),
-        helper: 'Lifetime received minus pending amounts',
+        label: 'Total Spent',
+        value: formatAmount(totalSpent),
+        helper: 'Total amount spent at partner shops',
       },
     ],
-    [availableBalance, overview, tokenSymbol]
+    [currentBalance, totalSpent, overview, formatAmount]
   );
 
   return (

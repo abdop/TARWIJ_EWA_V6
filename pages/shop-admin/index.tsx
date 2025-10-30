@@ -12,13 +12,6 @@ const HashConnectButton = dynamic(
   { ssr: false }
 );
 
-interface TokenInfo {
-  symbol: string;
-  name: string;
-  tokenId: string;
-  decimals: number;
-}
-
 interface OperationLogEntry {
   id: string;
   status: 'PENDING_SIGNATURE' | 'PENDING' | 'SUCCESS' | 'FAILED' | 'ERROR' | string;
@@ -26,6 +19,7 @@ interface OperationLogEntry {
   completedAt: string | null;
   tokenId: string | null;
   transactionId: string | null;
+  type?: string;
   details: {
     employeeAccountId: string | null;
     shopAccountId: string | null;
@@ -50,10 +44,6 @@ interface EcosystemToken {
 export default function ShopAdminDashboard() {
   const router = useRouter();
   const { user, accountId, isConnected } = useSelector((state: RootState) => state.hashconnect);
-
-  const [tokenInfo, setTokenInfo] = useState<TokenInfo | null>(null);
-  const [loadingToken, setLoadingToken] = useState(false);
-  const [tokenError, setTokenError] = useState<string | null>(null);
 
   const [employeeAccount, setEmployeeAccount] = useState('');
   const [amountInput, setAmountInput] = useState('');
@@ -83,71 +73,14 @@ export default function ShopAdminDashboard() {
     }
   }, [isConnected, router, user]);
 
-  useEffect(() => {
-    const loadToken = async () => {
-      if (!user?.entrepriseId) return;
-
-      try {
-        setLoadingToken(true);
-        setTokenError(null);
-
-        const response = await fetch(`/api/enterprise/${user.entrepriseId}`);
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to load enterprise token');
-        }
-
-        if (data?.data?.token) {
-          setTokenInfo({
-            symbol: data.data.token.symbol,
-            name: data.data.token.name,
-            tokenId: data.data.token.tokenId,
-            decimals: data.data.token.decimals ?? 2,
-          });
-        } else {
-          setTokenInfo(null);
-          setTokenError('No enterprise token configured for this shop.');
-        }
-      } catch (error: any) {
-        console.error('Token load failure:', error);
-        setTokenError(error.message || 'Unable to load token details');
-      } finally {
-        setLoadingToken(false);
-      }
-    };
-
-    if (user?.entrepriseId) {
-      loadToken();
-    }
-  }, [user?.entrepriseId]);
-
-  useEffect(() => {
-    const loadTransactions = async () => {
-      try {
-        const response = await fetch('/api/shop/transactions');
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to load transactions');
-        }
-
-        setTransactions(data.transactions);
-      } catch (error: any) {
-        console.error('Transaction load failure:', error);
-      }
-    };
-
-    loadTransactions();
-  }, []);
-
   const amountInTinyUnits = useMemo(() => {
-    if (!amountInput || !tokenInfo) return null;
+    if (!amountInput) return null;
     const parsed = Number(amountInput);
     if (Number.isNaN(parsed) || parsed <= 0) return null;
-    const multiplier = Math.pow(10, tokenInfo.decimals ?? 2);
+    // Default to 2 decimals (standard for most tokens)
+    const multiplier = Math.pow(10, 2);
     return Math.round(parsed * multiplier);
-  }, [amountInput, tokenInfo]);
+  }, [amountInput]);
 
   const decodeTransactionBytes = useCallback((base64: string) => {
     if (typeof window !== 'undefined' && window.atob) {
@@ -182,6 +115,21 @@ export default function ShopAdminDashboard() {
       setCatalogLoading(false);
     }
   }, [accountId]);
+
+  const pendingAssociationTokenIds = useMemo(() => {
+    const pending = new Set<string>();
+    operations.forEach((op) => {
+      if (!op) return;
+      if (!op.type?.startsWith('SHOP_TOKEN_ASSOCIATE')) return;
+      const tokenId = op.tokenId || (op.details as any)?.tokenId || null;
+      if (!tokenId) return;
+      const statusUpper = op.status?.toUpperCase?.();
+      if (statusUpper === 'PENDING_SIGNATURE' || statusUpper === 'PENDING' || statusUpper === 'PENDING_CONFIRMATION') {
+        pending.add(tokenId);
+      }
+    });
+    return pending;
+  }, [operations]);
 
   const loadOperations = useCallback(async () => {
     if (!accountId) return;
@@ -225,6 +173,13 @@ export default function ShopAdminDashboard() {
         return false;
       }
 
+      if (pendingAssociationTokenIds.has(token.tokenId)) {
+        if (!silent) {
+          setCatalogSuccess(`${token.symbol} association is already pending confirmation.`);
+        }
+        return true;
+      }
+
       setAssociationLoading(token.tokenId);
       if (!silent) {
         setCatalogError(null);
@@ -247,7 +202,19 @@ export default function ShopAdminDashboard() {
 
         const data = await response.json();
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to prepare token association');
+          const errorMessage = data.error || 'Failed to prepare token association';
+          if (errorMessage.includes('already associated')) {
+            if (!silent) {
+              setCatalogSuccess(`${token.symbol} is already associated.`);
+            }
+            setAssociationLoading(null);
+            if (!silent) {
+              await loadTokenCatalog();
+              await loadOperations();
+            }
+            return true;
+          }
+          throw new Error(errorMessage);
         }
 
         const { transactionBytes, operationId } = data;
@@ -260,11 +227,19 @@ export default function ShopAdminDashboard() {
 
         const { executeTransaction } = await import('../../src/services/hashconnect');
         const associationResult = await executeTransaction(accountId, transaction);
+        console.log('Association result:', associationResult);
         const transactionId = (associationResult as any)?.transactionId?.toString?.();
 
-        if (transactionId && operationId) {
+        if (!transactionId) {
+          console.error('No transaction ID in result:', associationResult);
+          throw new Error('Wallet signature cancelled or no transaction ID returned. Please approve the request in your wallet.');
+        }
+
+        console.log('Association transaction ID:', transactionId);
+
+        if (operationId) {
           try {
-            await fetch('/api/shop/accept-token', {
+            const patchResponse = await fetch('/api/shop/accept-token', {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -275,6 +250,13 @@ export default function ShopAdminDashboard() {
                 message: `Association submitted for ${token.symbol}`,
               }),
             });
+
+            if (!patchResponse.ok) {
+              const patchData = await patchResponse.json();
+              console.error('PATCH failed:', patchData);
+            } else {
+              console.log('Operation updated successfully');
+            }
           } catch (patchError) {
             console.error('Failed to update association operation:', patchError);
           }
@@ -286,24 +268,36 @@ export default function ShopAdminDashboard() {
         succeeded = true;
       } catch (error: any) {
         console.error('Token association failed:', error);
-        setCatalogError(error.message || 'Token association failed');
-        succeeded = false;
+        const errorMessage = error.message || 'Token association failed';
+        if (errorMessage.includes('already associated')) {
+          if (!silent) {
+            setCatalogSuccess(`${token.symbol} is already associated.`);
+          }
+          succeeded = true;
+        } else {
+          setCatalogError(errorMessage);
+          succeeded = false;
+        }
       } finally {
         setAssociationLoading(null);
-        await loadTokenCatalog();
-        await loadOperations();
+        if (!silent) {
+          await loadTokenCatalog();
+          await loadOperations();
+        }
       }
 
       return succeeded;
     },
-    [accountId, decodeTransactionBytes, loadOperations, loadTokenCatalog]
+    [accountId, decodeTransactionBytes, loadOperations, loadTokenCatalog, pendingAssociationTokenIds]
   );
 
   useEffect(() => {
     if (!accountId || !isConnected) return;
     if (catalogLoading || associationLoading || autoAssociating) return;
 
-    const unassociated = catalogTokens.filter((token) => !token.isAssociated);
+    const unassociated = catalogTokens.filter(
+      (token) => !token.isAssociated && !pendingAssociationTokenIds.has(token.tokenId)
+    );
     if (unassociated.length === 0) {
       return;
     }
@@ -333,6 +327,8 @@ export default function ShopAdminDashboard() {
             setCatalogSuccess(null);
           }
         }
+      await loadTokenCatalog();
+      await loadOperations();
       } finally {
         if (!cancelled) {
           setAutoAssociating(false);
@@ -347,101 +343,6 @@ export default function ShopAdminDashboard() {
     };
   }, [accountId, isConnected, catalogLoading, associationLoading, catalogTokens, autoAssociating, handleAssociate]);
 
-  const handleSubmit = useCallback(async () => {
-    if (!accountId) {
-      setSubmissionError('Connect your wallet before accepting tokens.');
-      return;
-    }
-    if (!tokenInfo) {
-      setSubmissionError('Token configuration missing.');
-      return;
-    }
-    if (!employeeAccount.trim()) {
-      setSubmissionError('Enter the employee wallet account ID.');
-      return;
-    }
-    if (!amountInTinyUnits || amountInTinyUnits <= 0) {
-      setSubmissionError('Enter a valid amount greater than zero.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setSubmissionError(null);
-
-    const optimisticId = `pending-${Date.now()}`;
-    const optimisticEntry: OperationLogEntry = {
-      id: optimisticId,
-      status: 'PENDING_SIGNATURE',
-      createdAt: new Date().toISOString(),
-      completedAt: null,
-      tokenId: tokenInfo.tokenId,
-      transactionId: null,
-      details: {
-        employeeAccountId: employeeAccount.trim(),
-        shopAccountId: accountId,
-        amount: amountInTinyUnits,
-        memo: memoInput.trim() || null,
-        decimals: tokenInfo.decimals ?? 2,
-        message: 'Awaiting wallet signature',
-      },
-    };
-
-    setOperations((prev) => [optimisticEntry, ...prev]);
-
-    try {
-      const response = await fetch('/api/shop/accept-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          employeeAccountId: employeeAccount.trim(),
-          shopAccountId: accountId,
-          amount: amountInTinyUnits,
-          memo: memoInput.trim() || undefined,
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to prepare token acceptance');
-      }
-
-      const { transactionBytes } = data;
-      if (!transactionBytes) {
-        throw new Error('Transaction bytes missing from response');
-      }
-
-      const bytes = decodeTransactionBytes(transactionBytes);
-      const transaction = Transaction.fromBytes(bytes);
-
-      const { executeTransaction } = await import('../../src/services/hashconnect');
-      await executeTransaction(accountId, transaction);
-
-      setEmployeeAccount('');
-      setAmountInput('');
-      setMemoInput('');
-    } catch (error: any) {
-      console.error('Token acceptance failed:', error);
-      setSubmissionError(error.message || 'Token acceptance failed');
-      setOperations((prev) =>
-        prev.map((entry) =>
-          entry.id === optimisticId
-            ? {
-                ...entry,
-                status: 'ERROR',
-                details: {
-                  ...entry.details,
-                  message: error.message || 'Token acceptance failed',
-                },
-              }
-            : entry
-        )
-      );
-    } finally {
-      setIsSubmitting(false);
-      await loadOperations();
-    }
-  }, [accountId, amountInTinyUnits, decodeTransactionBytes, employeeAccount, loadOperations, memoInput, tokenInfo]);
-
   return (
     <>
       <Head>
@@ -450,26 +351,26 @@ export default function ShopAdminDashboard() {
 
       <div className="bg-background-dark min-h-screen text-gray-200">
         <div className="flex min-h-screen">
-          <aside className="w-72 bg-background-dark/80 p-6 flex flex-col border-r border-gray-800">
-            <div className="mb-10">
-              <h1 className="text-2xl font-bold text-white">TARWIJ EWA</h1>
-              <p className="text-sm text-gray-500 mt-1">Shop Admin</p>
+          <aside className="w-64 min-h-screen bg-background-light/10 border-r border-gray-700">
+            <div className="p-6">
+              <h1 className="text-2xl font-bold text-white mb-8">Shop Admin</h1>
+              <nav className="space-y-2">
+                <button
+                  onClick={() => router.push('/shop-admin')}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-white bg-primary rounded-lg"
+                >
+                  <DashboardIcon className="h-5 w-5" />
+                  Dashboard
+                </button>
+                <button
+                  onClick={() => router.push('/shop-admin/sales')}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-gray-400 hover:text-white hover:bg-background-light/20 rounded-lg transition"
+                >
+                  <ShopIcon className="h-5 w-5" />
+                  Sales
+                </button>
+              </nav>
             </div>
-            <nav className="flex flex-col space-y-2">
-              <a href="/shop-admin" className="flex items-center gap-3 px-4 py-2 rounded-lg bg-primary/30 text-primary font-semibold">
-                <DashboardIcon className="w-5 h-5" />
-                <span>Dashboard</span>
-              </a>
-              <a href="/shop-admin/staff" className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-300 hover:bg-primary/10">
-                <UsersIcon className="w-5 h-5" />
-                <span>Staff Management</span>
-              </a>
-              <a href="/shop-admin/sales" className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-300 hover:bg-primary/10">
-                <ShopIcon className="w-5 h-5" />
-                <span>Sales</span>
-              </a>
-            </nav>
-            <div className="mt-auto pt-8 text-xs text-gray-500">Connected via HashPack</div>
           </aside>
 
           <main className="flex-1 flex flex-col bg-background-dark/90 overflow-y-auto">
@@ -505,23 +406,63 @@ export default function ShopAdminDashboard() {
                   </section>
                 )}
 
-                <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-background-light/10 border border-gray-700 rounded-xl p-6">
-                    <p className="text-sm text-gray-400">Token Symbol</p>
-                    <p className="text-2xl font-bold text-white mt-2">{loadingToken ? 'Loading…' : tokenInfo?.symbol ?? '—'}</p>
-                    <p className="text-xs text-gray-500 mt-1">{tokenInfo?.tokenId ?? 'No token available'}</p>
-                  </div>
-                  <div className="bg-background-light/10 border border-gray-700 rounded-xl p-6">
-                    <p className="text-sm text-gray-400">Decimals</p>
-                    <p className="text-2xl font-bold text-white mt-2">{tokenInfo?.decimals ?? '—'}</p>
-                    <p className="text-xs text-gray-500 mt-1">Required for amount conversion</p>
-                  </div>
-                  <div className="bg-background-light/10 border border-gray-700 rounded-xl p-6">
-                    <p className="text-sm text-gray-400">Status</p>
-                    <p className="text-2xl font-bold text-white mt-2">
-                      {tokenError ? 'Needs Attention' : tokenInfo ? 'Ready' : loadingToken ? 'Loading…' : 'Unknown'}
-                    </p>
-                    {tokenError && <p className="text-xs text-red-400 mt-1">{tokenError}</p>}
+                {/* Token Balances */}
+                <section className="bg-background-light/10 border border-gray-700 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">Token Balances</h3>
+                  <p className="text-sm text-gray-400 mb-6">Total tokens received from customer payments</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {catalogTokens
+                      .filter((token) => token.isAssociated)
+                      .map((token) => {
+                        const successfulPayments = operations.filter(
+                          (op) =>
+                            op.type === 'SHOP_ACCEPT_TOKEN_PREPARED' &&
+                            op.status === 'SUCCESS' &&
+                            (op.tokenId === token.tokenId || (op.details as any)?.tokenId === token.tokenId)
+                        );
+                        
+                        const totalReceived = successfulPayments.reduce(
+                          (sum, op) => sum + (op.details.amount || 0),
+                          0
+                        );
+                        
+                        const divisor = Math.pow(10, token.decimals);
+                        const formattedBalance = (totalReceived / divisor).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        });
+                        
+                        return (
+                          <div
+                            key={token.tokenId}
+                            className="bg-background-dark/60 border border-gray-700 rounded-lg p-4"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-sm text-gray-400">{token.name}</p>
+                              <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${
+                                token.type === 'platform'
+                                  ? 'bg-primary/20 text-primary border border-primary/40'
+                                  : 'bg-green-500/20 text-green-300 border border-green-500/40'
+                              }`}>
+                                {token.type === 'platform' ? 'Platform' : 'Enterprise'}
+                              </span>
+                            </div>
+                            <p className="text-2xl font-bold text-white">
+                              {formattedBalance} {token.symbol}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {successfulPayments.length} transaction{successfulPayments.length !== 1 ? 's' : ''}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    
+                    {catalogTokens.filter((t) => t.isAssociated).length === 0 && (
+                      <div className="col-span-full text-center py-8">
+                        <p className="text-sm text-gray-500">No associated tokens yet. Associate tokens below to start accepting payments.</p>
+                      </div>
+                    )}
                   </div>
                 </section>
 
@@ -567,6 +508,7 @@ export default function ShopAdminDashboard() {
                         const isDisabled =
                           isAssociated ||
                           associationLoading === token.tokenId ||
+                          pendingAssociationTokenIds.has(token.tokenId) ||
                           !isConnected ||
                           autoAssociating;
                         return (
@@ -594,6 +536,10 @@ export default function ShopAdminDashboard() {
                                 <span className="inline-flex items-center gap-1 rounded-full border border-green-500/40 bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-300">
                                   Associated
                                 </span>
+                              ) : pendingAssociationTokenIds.has(token.tokenId) ? (
+                                <span className="inline-flex items-center gap-1 rounded-full border border-yellow-500/40 bg-yellow-500/10 px-3 py-1 text-xs font-semibold text-yellow-200">
+                                  Pending Confirmation
+                                </span>
                               ) : (
                                 <button
                                   type="button"
@@ -619,78 +565,6 @@ export default function ShopAdminDashboard() {
                   )}
                 </section>
 
-                <section className="bg-background-light/10 border border-gray-700 rounded-xl p-6 space-y-6">
-                  <header className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-xl font-semibold text-white">Accept Employee Tokens</h3>
-                      <p className="text-sm text-gray-400">Sign and receive enterprise tokens directly into the shop wallet.</p>
-                    </div>
-                  </header>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm text-gray-400">Employee Account ID</label>
-                      <input
-                        value={employeeAccount}
-                        onChange={(event) => setEmployeeAccount(event.target.value)}
-                        placeholder="0.0.xxxx"
-                        className="w-full rounded-lg bg-background-dark/60 border border-gray-700 px-4 py-2 text-sm text-white focus:border-primary focus:outline-none"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm text-gray-400">Amount ({tokenInfo?.symbol ?? 'tokens'})</label>
-                      <input
-                        value={amountInput}
-                        onChange={(event) => setAmountInput(event.target.value)}
-                        placeholder="e.g. 25.5"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        className="w-full rounded-lg bg-background-dark/60 border border-gray-700 px-4 py-2 text-sm text-white focus:border-primary focus:outline-none"
-                      />
-                      {amountInTinyUnits && tokenInfo && (
-                        <p className="text-xs text-gray-500">
-                          {amountInTinyUnits.toLocaleString()} units @ 10^{tokenInfo.decimals}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm text-gray-400">Memo (optional)</label>
-                      <input
-                        value={memoInput}
-                        onChange={(event) => setMemoInput(event.target.value)}
-                        placeholder="Purchase memo"
-                        maxLength={100}
-                        className="w-full rounded-lg bg-background-dark/60 border border-gray-700 px-4 py-2 text-sm text-white focus:border-primary focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {submissionError && (
-                    <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                      {submissionError}
-                    </div>
-                  )}
-
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={handleSubmit}
-                      disabled={isSubmitting || !isConnected || !tokenInfo}
-                      className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-background-dark transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-background-dark border-t-transparent" />
-                          Processing…
-                        </>
-                      ) : (
-                        'Accept Tokens'
-                      )}
-                    </button>
-                  </div>
-                </section>
-
                 <section className="bg-background-light/10 border border-gray-700 rounded-xl p-6">
                   <div className="mb-4 flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-white">Recent Token Operations</h3>
@@ -714,11 +588,12 @@ export default function ShopAdminDashboard() {
                       Loading operations…
                     </div>
                   ) : operations.length === 0 ? (
-                    <p className="text-sm text-gray-500">No token acceptance attempts yet.</p>
+                    <p className="text-sm text-gray-500">No operations yet.</p>
                   ) : (
                     <ul className="space-y-3">
                       {operations.map((entry) => {
-                        const decimals = entry.details.decimals ?? tokenInfo?.decimals ?? 2;
+                        const isAssociation = entry.type?.startsWith('SHOP_TOKEN_ASSOCIATE');
+                        const decimals = entry.details.decimals ?? 2;
                         const divisor = Math.pow(10, decimals);
                         const rawAmount = entry.details.amount ?? 0;
                         const formattedAmount = (rawAmount / divisor).toLocaleString(undefined, {
@@ -726,6 +601,9 @@ export default function ShopAdminDashboard() {
                           maximumFractionDigits: 2,
                         });
                         const employeeId = entry.details.employeeAccountId ?? '—';
+                        const tokenIdFromEntry = entry.tokenId || (entry.details as any)?.tokenId;
+                        const catalogToken = catalogTokens.find((t) => t.tokenId === tokenIdFromEntry);
+                        const tokenSymbol = catalogToken?.symbol || 'TOKEN';
 
                         let statusStyle = 'bg-amber-500/20 text-amber-300 border border-amber-500/40';
                         if (entry.status?.toUpperCase().includes('SUCCESS')) {
@@ -740,11 +618,23 @@ export default function ShopAdminDashboard() {
                             className="rounded-lg border border-gray-700/70 bg-background-dark/60 p-4 text-sm text-gray-300"
                           >
                             <div className="flex flex-wrap items-center justify-between gap-3">
-                              <div>
-                                <p className="font-semibold text-white">
-                                  {tokenInfo?.symbol ?? 'TOKEN'} • {formattedAmount}
-                                </p>
-                                <p className="text-xs text-gray-500">Employee: {employeeId}</p>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <p className="font-semibold text-white">
+                                    {isAssociation ? `Token Association: ${tokenSymbol}` : `${tokenSymbol} • ${formattedAmount}`}
+                                  </p>
+                                  {catalogToken && (
+                                    <span className="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wide bg-primary/20 text-primary border border-primary/40">
+                                      {catalogToken.type === 'platform' ? 'Platform' : 'Enterprise'}
+                                    </span>
+                                  )}
+                                </div>
+                                {!isAssociation && (
+                                  <p className="text-xs text-gray-500">Employee: {employeeId}</p>
+                                )}
+                                {isAssociation && catalogToken?.enterpriseName && (
+                                  <p className="text-xs text-gray-500">Enterprise: {catalogToken.enterpriseName}</p>
+                                )}
                                 <p className="text-xs text-gray-500">{new Date(entry.createdAt).toLocaleString()}</p>
                               </div>
                               <div className="text-right">
@@ -786,3 +676,4 @@ function UsersIcon(props: React.SVGProps<SVGSVGElement>) {
 
 function ShopIcon(props: React.SVGProps<SVGSVGElement>) {
   return <svg viewBox="0 0 24 24" fill="currentColor" {...props}><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z" /></svg>;
+}

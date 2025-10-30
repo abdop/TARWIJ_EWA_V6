@@ -1,9 +1,10 @@
-import { getDltOperationRepository } from '../repositories/RepositoryFactory';
+import { getDltOperationRepository, getUserRepository } from '../repositories/RepositoryFactory';
 import type { DltOperation } from '../repositories/IDltOperationRepository';
 import { fetchMirrorTransaction } from '../services/hedera/mirror';
+import { dataService } from '../services/data/dataService';
 
-const POLLABLE_TYPES = ['SHOP_ACCEPT_TOKEN_PREPARED'];
-const POLLABLE_STATUSES = ['PENDING_CONFIRMATION', 'PENDING_SIGNATURE'];
+const POLLABLE_TYPES = ['SHOP_ACCEPT_TOKEN_PREPARED', 'SHOP_TOKEN_ASSOCIATE_PREPARED'];
+const POLLABLE_STATUSES = ['PENDING_CONFIRMATION'];
 
 const timestampToIsoString = (consensusTimestamp?: string): string | undefined => {
   if (!consensusTimestamp) return undefined;
@@ -98,6 +99,46 @@ export const pollShopTokenConfirmations = async (): Promise<PollResult> => {
 
     try {
       await repo.update(operation.id, updatePayload);
+      
+      // If this is a successful shop payment, deduct from employee's wage advance balance
+      if (isSuccess && operation.type === 'SHOP_ACCEPT_TOKEN_PREPARED') {
+        const employeeAccountId = operation.details?.employeeAccountId;
+        const amount = operation.details?.amount;
+        
+        if (employeeAccountId && amount) {
+          try {
+            const userRepo = getUserRepository();
+            const employee = await userRepo.findByHederaId(employeeAccountId);
+            
+            if (employee) {
+              const fs = await import('fs/promises');
+              const path = await import('path');
+              const dataPath = path.join(process.cwd(), 'data.json');
+              const rawData = await fs.readFile(dataPath, 'utf-8');
+              const data = JSON.parse(rawData);
+              
+              const wageAdvance = data.wage_advances?.find(
+                (wa: any) => wa.employeeId === employee.id && wa.status === 'APPROVED'
+              );
+              
+              if (wageAdvance) {
+                const currentBalance = wageAdvance.currentBalance ?? wageAdvance.approvedAmount;
+                const newBalance = Math.max(0, currentBalance - amount);
+                
+                wageAdvance.currentBalance = newBalance;
+                wageAdvance.updatedAt = new Date().toISOString();
+                
+                await fs.writeFile(dataPath, JSON.stringify(data, null, 2), 'utf-8');
+                
+                console.log(`Updated employee ${employee.id} wage advance balance: ${currentBalance} -> ${newBalance}`);
+              }
+            }
+          } catch (balanceError: any) {
+            console.error('Failed to update employee balance:', balanceError);
+          }
+        }
+      }
+      
       result.updated += 1;
       result.details.push({
         id: operation.id,

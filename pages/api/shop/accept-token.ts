@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { AccountId, TokenId, TransferTransaction } from '@hashgraph/sdk';
+import { AccountId, TokenId, TransactionId, TransferTransaction } from '@hashgraph/sdk';
 import { hederaClient } from '../../../src/services/hedera/client';
 import {
   getUserRepository,
@@ -31,10 +31,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const operations = await dltOpRepo.findByUser(shopUser.id);
       const filtered = operations
-        .filter((op) => op.type?.startsWith('SHOP_ACCEPT_TOKEN'))
+        .filter((op) => {
+          if (!op.type) return false;
+          return (
+            op.type.startsWith('SHOP_ACCEPT_TOKEN') ||
+            op.type.startsWith('SHOP_TOKEN_ASSOCIATE')
+          );
+        })
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .map((op) => ({
           id: op.id,
+          type: op.type ?? 'UNKNOWN',
           status: op.status,
           createdAt: op.createdAt,
           completedAt: op.completedAt ?? null,
@@ -177,13 +184,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: 'Employee user not found' });
     }
 
-    if (!shopUser.entrepriseId || shopUser.entrepriseId !== employeeUser.entrepriseId) {
-      return res.status(400).json({ error: 'Shop and employee must belong to the same enterprise' });
+    if (!employeeUser.entrepriseId) {
+      return res.status(400).json({ error: 'Employee does not belong to any enterprise' });
     }
 
-    const enterpriseToken = await tokenRepo.findByEnterpriseId(shopUser.entrepriseId);
+    const enterpriseToken = await tokenRepo.findByEnterpriseId(employeeUser.entrepriseId);
     if (!enterpriseToken) {
-      return res.status(400).json({ error: 'Enterprise token not configured for this enterprise' });
+      return res.status(400).json({ error: 'Enterprise token not configured for employee enterprise' });
     }
 
     const tokenId = TokenId.fromString(enterpriseToken.tokenId);
@@ -195,6 +202,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const transaction = await new TransferTransaction()
       .addTokenTransfer(tokenId, AccountId.fromString(employeeAccountId), -amount)
       .addTokenTransfer(tokenId, AccountId.fromString(shopAccountId), amount)
+      .setTransactionId(TransactionId.generate(AccountId.fromString(employeeAccountId)))
       .setTransactionMemo(memo?.slice(0, 100) || 'Shop purchase settlement')
       .freezeWith(client);
 
@@ -204,7 +212,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       type: 'SHOP_ACCEPT_TOKEN_PREPARED',
       status: 'PENDING_SIGNATURE',
       userId: shopUser.id,
-      entrepriseId: shopUser.entrepriseId,
+      entrepriseId: employeeUser.entrepriseId,
       tokenId: enterpriseToken.tokenId,
       details: {
         employeeAccountId,
@@ -212,6 +220,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         amount,
         memo,
         decimals: enterpriseToken.decimals ?? 2,
+        employeeEnterpriseId: employeeUser.entrepriseId,
       },
       createdAt: new Date().toISOString(),
       id: dataService.generateId('dlt'),

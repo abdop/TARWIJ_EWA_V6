@@ -1709,115 +1709,343 @@
     },
     {
       "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
-      "status": "PENDING_SIGNATURE",
+      "status": "ERROR",
       "userId": "user_003",
       "tokenId": "0.0.7102487",
       "details": {
         "shopAccountId": "0.0.6974242",
         "tokenId": "0.0.7102487",
         "enterpriseId": null,
-        "tokenType": "platform"
+        "tokenType": "platform",
+        "message": "Operation expired - wallet signature not completed within time limit"
       },
       "createdAt": "2025-10-29T22:48:59.741Z",
-      "id": "dlt_1761778139741_jlks7smqj"
+      "id": "dlt_1761778139741_jlks7smqj",
+      "completedAt": "2025-10-29T23:46:18.495Z"
     },
     {
       "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
-      "status": "PENDING_SIGNATURE",
+      "status": "ERROR",
       "userId": "user_003",
       "tokenId": "0.0.7102487",
       "details": {
         "shopAccountId": "0.0.6974242",
         "tokenId": "0.0.7102487",
         "enterpriseId": null,
-        "tokenType": "platform"
+        "tokenType": "platform",
+        "message": "Operation expired - wallet signature not completed within time limit"
       },
       "createdAt": "2025-10-29T22:50:55.194Z",
-      "id": "dlt_1761778255194_u342pn6q8"
+      "id": "dlt_1761778255194_u342pn6q8",
+      "completedAt": "2025-10-29T23:46:18.498Z"
     },
     {
       "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
-      "status": "PENDING_SIGNATURE",
+      "status": "ERROR",
       "userId": "user_003",
       "tokenId": "0.0.7102487",
       "details": {
         "shopAccountId": "0.0.6974242",
         "tokenId": "0.0.7102487",
         "enterpriseId": null,
-        "tokenType": "platform"
+        "tokenType": "platform",
+        "message": "Operation expired - wallet signature not completed within time limit"
       },
       "createdAt": "2025-10-29T22:51:18.160Z",
-      "id": "dlt_1761778278161_7rsio16wg"
+      "id": "dlt_1761778278161_7rsio16wg",
+      "completedAt": "2025-10-29T23:46:18.500Z"
     },
     {
       "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
-      "status": "PENDING_SIGNATURE",
+      "status": "ERROR",
       "userId": "user_003",
       "tokenId": "0.0.7102487",
       "details": {
         "shopAccountId": "0.0.6974242",
         "tokenId": "0.0.7102487",
         "enterpriseId": null,
-        "tokenType": "platform"
+        "tokenType": "platform",
+        "message": "Operation expired - wallet signature not completed within time limit"
       },
       "createdAt": "2025-10-29T22:58:16.248Z",
-      "id": "dlt_1761778696248_if0hhke1i"
+      "id": "dlt_1761778696248_if0hhke1i",
+      "completedAt": "2025-10-29T23:46:18.502Z"
     },
     {
       "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
-      "status": "PENDING_SIGNATURE",
+      "status": "ERROR",
       "userId": "user_003",
       "tokenId": "0.0.7020524",
       "details": {
         "shopAccountId": "0.0.6974242",
         "tokenId": "0.0.7020524",
         "enterpriseId": "ent_001",
-        "tokenType": "enterprise"
+        "tokenType": "enterprise",
+        "message": "Operation expired - wallet signature not completed within time limit"
       },
       "createdAt": "2025-10-29T23:01:57.154Z",
-      "id": "dlt_1761778917154_sq5nz7kdg"
+      "id": "dlt_1761778917154_sq5nz7kdg",
+      "completedAt": "2025-10-29T23:46:18.504Z"
     },
     {
       "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
-      "status": "PENDING_SIGNATURE",
+      "status": "ERROR",
       "userId": "user_003",
       "tokenId": "0.0.7020524",
       "details": {
         "shopAccountId": "0.0.6974242",
         "tokenId": "0.0.7020524",
         "enterpriseId": "ent_001",
-        "tokenType": "enterprise"
+        "tokenType": "enterprise",
+        "message": "Operation expired - wallet signature not completed within time limit"
       },
       "createdAt": "2025-10-29T23:02:21.968Z",
-      "id": "dlt_1761778941968_setb7zsmf"
+      "id": "dlt_1761778941968_setb7zsmf",
+      "completedAt": "2025-10-29T23:46:18.506Z"
     },
     {
       "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
-      "status": "PENDING_SIGNATURE",
+      "status": "ERROR",
       "userId": "user_003",
       "tokenId": "0.0.7091937",
       "details": {
         "shopAccountId": "0.0.6974242",
         "tokenId": "0.0.7091937",
         "enterpriseId": "ent_002",
-        "tokenType": "enterprise"
+        "tokenType": "enterprise",
+        "message": "Operation expired - wallet signature not completed within time limit"
       },
       "createdAt": "2025-10-29T23:02:48.909Z",
-      "id": "dlt_1761778968909_pzzj4m15w"
+      "id": "dlt_1761778968909_pzzj4m15w",
+      "completedAt": "2025-10-29T23:46:18.510Z"
     },
     {
       "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
-      "status": "PENDING_SIGNATURE",
+      "status": "ERROR",
       "userId": "user_003",
       "tokenId": "0.0.7091937",
       "details": {
         "shopAccountId": "0.0.6974242",
         "tokenId": "0.0.7091937",
         "enterpriseId": "ent_002",
-        "tokenType": "enterprise"
+        "tokenType": "enterprise",
+        "message": "Operation expired - wallet signature not completed within time limit"
       },
       "createdAt": "2025-10-29T23:03:09.674Z",
-      "id": "dlt_1761778989674_58is7576j"
+      "id": "dlt_1761778989674_58is7576j",
+      "completedAt": "2025-10-29T23:46:18.512Z"
+    },
+    {
+      "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
+      "status": "ERROR",
+      "userId": "user_003",
+      "tokenId": "0.0.7145927",
+      "details": {
+        "shopAccountId": "0.0.6974242",
+        "tokenId": "0.0.7145927",
+        "enterpriseId": "3ieohizet3v",
+        "tokenType": "enterprise",
+        "message": "Operation expired - wallet signature not completed within time limit"
+      },
+      "createdAt": "2025-10-29T23:19:33.723Z",
+      "id": "dlt_1761779973723_ld6sqoj8p",
+      "completedAt": "2025-10-29T23:46:18.514Z"
+    },
+    {
+      "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
+      "status": "ERROR",
+      "userId": "user_003",
+      "tokenId": "0.0.7146162",
+      "details": {
+        "shopAccountId": "0.0.6974242",
+        "tokenId": "0.0.7146162",
+        "enterpriseId": "ent_1761585217799_t8mnz9sf1",
+        "tokenType": "enterprise",
+        "message": "Operation expired - wallet signature not completed within time limit"
+      },
+      "createdAt": "2025-10-29T23:32:26.639Z",
+      "id": "dlt_1761780746639_8yo2ym8f9",
+      "completedAt": "2025-10-29T23:46:18.517Z"
+    },
+    {
+      "type": "SHOP_TOKEN_ASSOCIATE_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "tokenId": "0.0.7146162",
+      "details": {
+        "shopAccountId": "0.0.6974242",
+        "tokenId": "0.0.7146162",
+        "enterpriseId": "ent_1761585217799_t8mnz9sf1",
+        "tokenType": "enterprise"
+      },
+      "createdAt": "2025-10-29T23:47:12.420Z",
+      "id": "dlt_1761781632420_zuu8gqrae"
+    },
+    {
+      "type": "SHOP_ACCEPT_TOKEN_PREPARED",
+      "status": "SUCCESS",
+      "userId": "user_003",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "employeeAccountId": "0.0.7035523",
+        "shopAccountId": "0.0.6974242",
+        "amount": 300,
+        "memo": "food",
+        "decimals": 2,
+        "employeeEnterpriseId": "ent_002",
+        "message": "Payment confirmed (manually fixed)"
+      },
+      "createdAt": "2025-10-30T00:16:05.716Z",
+      "id": "dlt_1761783365716_qd4dzj18m",
+      "completedAt": "2025-10-30T01:13:53.648Z"
+    },
+    {
+      "type": "SHOP_ACCEPT_TOKEN_PREPARED",
+      "status": "SUCCESS",
+      "userId": "user_003",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "employeeAccountId": "0.0.7035523",
+        "shopAccountId": "0.0.6974242",
+        "amount": 300,
+        "memo": "gas",
+        "decimals": 2,
+        "employeeEnterpriseId": "ent_002",
+        "message": "Payment confirmed (manually fixed)"
+      },
+      "createdAt": "2025-10-30T00:21:45.770Z",
+      "id": "dlt_1761783705770_fx2ljkag0",
+      "completedAt": "2025-10-30T01:13:53.648Z"
+    },
+    {
+      "type": "SHOP_ACCEPT_TOKEN_PREPARED",
+      "status": "SUCCESS",
+      "userId": "user_003",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "employeeAccountId": "0.0.7035523",
+        "shopAccountId": "0.0.6974242",
+        "amount": 300,
+        "memo": "gas",
+        "decimals": 2,
+        "employeeEnterpriseId": "ent_002",
+        "message": "Payment confirmed (manually fixed)"
+      },
+      "createdAt": "2025-10-30T00:26:18.204Z",
+      "id": "dlt_1761783978204_mbgjr5wjv",
+      "completedAt": "2025-10-30T01:13:53.648Z"
+    },
+    {
+      "type": "SHOP_PAYMENT_REQUEST_CREATED",
+      "status": "PENDING",
+      "userId": "user_003",
+      "details": {
+        "id": "payment_req_1761784333165_7mpuspxjn",
+        "shopAccountId": "0.0.6974242",
+        "shopName": "Charlie Brown",
+        "amount": 300,
+        "memo": "food",
+        "tokenId": "0.0.7102487",
+        "status": "PENDING",
+        "createdAt": "2025-10-30T00:32:13.165Z",
+        "expiresAt": "2025-10-30T00:47:13.165Z"
+      },
+      "createdAt": "2025-10-30T00:32:13.165Z",
+      "id": "payment_req_1761784333165_7mpuspxjn"
+    },
+    {
+      "type": "SHOP_ACCEPT_TOKEN_PREPARED",
+      "status": "SUCCESS",
+      "userId": "user_003",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "employeeAccountId": "0.0.7035523",
+        "shopAccountId": "0.0.6974242",
+        "amount": 300,
+        "memo": "food",
+        "decimals": 2,
+        "employeeEnterpriseId": "ent_002",
+        "message": "Payment confirmed (manually fixed)"
+      },
+      "createdAt": "2025-10-30T00:34:07.344Z",
+      "id": "dlt_1761784447344_8nrmhm3pb",
+      "completedAt": "2025-10-30T01:13:53.648Z"
+    },
+    {
+      "type": "SHOP_PAYMENT_REQUEST_CREATED",
+      "status": "PENDING",
+      "userId": "user_003",
+      "details": {
+        "id": "payment_req_1761785544950_wxbewsdfv",
+        "shopAccountId": "0.0.6974242",
+        "shopName": "Charlie Brown",
+        "amount": 200,
+        "memo": "groceries",
+        "tokenId": "0.0.7102487",
+        "status": "PENDING",
+        "createdAt": "2025-10-30T00:52:24.950Z",
+        "expiresAt": "2025-10-30T01:07:24.950Z"
+      },
+      "createdAt": "2025-10-30T00:52:24.950Z",
+      "id": "payment_req_1761785544950_wxbewsdfv"
+    },
+    {
+      "type": "SHOP_ACCEPT_TOKEN_PREPARED",
+      "status": "SUCCESS",
+      "userId": "user_003",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "employeeAccountId": "0.0.7035523",
+        "shopAccountId": "0.0.6974242",
+        "amount": 200,
+        "memo": "groceries",
+        "decimals": 2,
+        "employeeEnterpriseId": "ent_002",
+        "message": "Payment confirmed (manually fixed)"
+      },
+      "createdAt": "2025-10-30T00:53:39.866Z",
+      "id": "dlt_1761785619866_3wwq5o1ry",
+      "completedAt": "2025-10-30T01:13:53.648Z"
+    },
+    {
+      "type": "SHOP_PAYMENT_REQUEST_CREATED",
+      "status": "PENDING",
+      "userId": "user_003",
+      "details": {
+        "id": "payment_req_1761788230313_vy36vmm90",
+        "shopAccountId": "0.0.6974242",
+        "shopName": "Charlie Brown",
+        "amount": 400,
+        "memo": "gas",
+        "tokenId": "0.0.7102487",
+        "status": "PENDING",
+        "createdAt": "2025-10-30T01:37:10.313Z",
+        "expiresAt": "2025-10-30T01:52:10.313Z"
+      },
+      "createdAt": "2025-10-30T01:37:10.313Z",
+      "id": "payment_req_1761788230313_vy36vmm90"
+    },
+    {
+      "type": "SHOP_ACCEPT_TOKEN_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "employeeAccountId": "0.0.7035523",
+        "shopAccountId": "0.0.6974242",
+        "amount": 400,
+        "memo": "gas",
+        "decimals": 2,
+        "employeeEnterpriseId": "ent_002"
+      },
+      "createdAt": "2025-10-30T01:38:13.644Z",
+      "id": "dlt_1761788293644_u527qetox"
     }
   ],
   "wage_advance_requests": [
