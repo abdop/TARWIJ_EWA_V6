@@ -89,6 +89,8 @@ export default function EmployeeWalletPage() {
     return typeof nameCandidate === 'string' ? nameCandidate : null;
   };
 
+  const liveBalance = overview?.stats.liveBalance ?? null;
+  const calculatedBalance = overview?.stats.calculatedBalance ?? null;
   const currentBalance = overview?.stats.currentBalance ?? null;
   const totalSpent = overview?.stats.totalShopPayments ?? null;
 
@@ -101,8 +103,10 @@ export default function EmployeeWalletPage() {
       },
       {
         label: 'Current Balance',
-        value: formatAmount(currentBalance),
-        helper: 'Available balance after shop payments',
+        value: formatAmount(liveBalance ?? currentBalance),
+        helper: liveBalance != null
+          ? 'Live on-chain balance fetched from Hedera'
+          : 'Live balance unavailable. Showing calculated estimate.',
       },
       {
         label: 'Total Spent',
@@ -110,7 +114,7 @@ export default function EmployeeWalletPage() {
         helper: 'Total amount spent at partner shops',
       },
     ],
-    [currentBalance, totalSpent, overview, formatAmount]
+    [liveBalance, currentBalance, totalSpent, overview, formatAmount]
   );
 
   return (
@@ -239,6 +243,13 @@ export default function EmployeeWalletPage() {
                             </div>
                           ))}
                         </div>
+
+                        {liveBalance == null && (
+                          <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-xs text-amber-200">
+                            We could not reach the Hedera mirror node, so the balance shown uses local wage advance calculations.
+                            Refresh later to see the live on-chain amount.
+                          </div>
+                        )}
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-400">
                           <div className="rounded-lg border border-gray-700/60 bg-background-dark/60 p-4">

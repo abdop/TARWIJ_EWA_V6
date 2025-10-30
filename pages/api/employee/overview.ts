@@ -6,6 +6,96 @@ import {
   getDltOperationRepository,
 } from '../../../src/repositories/RepositoryFactory';
 
+const MIRROR_NODE_BASE_URL =
+  process.env.HEDERA_MIRROR_NODE_URL || 'https://testnet.mirrornode.hedera.com';
+
+async function fetchLiveTokenBalance(accountId: string, tokenId: string, fallbackDecimals = 0) {
+  const headers = { Accept: 'application/json' } as const;
+
+  const parseTokenEntry = (tokenEntry: any) => {
+    if (!tokenEntry) return null;
+
+    const balanceTiny = Number(
+      tokenEntry.balance ??
+        tokenEntry.balanceInTinybar ??
+        tokenEntry.balance_in_tinybar ??
+        tokenEntry.balance_in_tinybars ??
+        tokenEntry?.balance?.balance,
+    );
+    const decimals = Number(
+      tokenEntry.token_decimals ??
+        tokenEntry.decimals ??
+        tokenEntry?.token?.decimals ??
+        fallbackDecimals ??
+        0,
+    );
+
+    if (Number.isNaN(balanceTiny) || Number.isNaN(decimals)) {
+      return null;
+    }
+
+    return balanceTiny / 10 ** decimals;
+  };
+
+  const tryAccountEndpoint = async () => {
+    const url = `${MIRROR_NODE_BASE_URL}/api/v1/accounts/${accountId}`;
+    const response = await fetch(url, { headers, cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`account endpoint ${response.status}`);
+    }
+
+    const data = await response.json();
+    const tokens = data?.balance?.tokens ?? data?.tokens;
+    if (!Array.isArray(tokens)) return null;
+
+    const tokenEntry = tokens.find((token: any) => {
+      const id =
+        token?.token_id ||
+        token?.tokenId ||
+        token?.token?.token_id ||
+        token?.token?.tokenId ||
+        token?.token;
+      return id === tokenId;
+    });
+
+    return parseTokenEntry(tokenEntry);
+  };
+
+  const tryTokensEndpoint = async () => {
+    const url = `${MIRROR_NODE_BASE_URL}/api/v1/accounts/${accountId}/tokens?token.id=${encodeURIComponent(
+      tokenId,
+    )}&limit=1`;
+    const response = await fetch(url, { headers, cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`account tokens endpoint ${response.status}`);
+    }
+
+    const data = await response.json();
+    const tokenEntry = Array.isArray(data?.tokens) ? data.tokens[0] : null;
+    return parseTokenEntry(tokenEntry);
+  };
+
+  try {
+    const accountBalance = await tryAccountEndpoint();
+    if (accountBalance != null) {
+      return accountBalance;
+    }
+  } catch (err) {
+    console.error('Mirror node account lookup failed:', err);
+  }
+
+  try {
+    const tokenBalance = await tryTokensEndpoint();
+    if (tokenBalance != null) {
+      return tokenBalance;
+    }
+  } catch (err) {
+    console.error('Mirror node account tokens lookup failed:', err);
+  }
+
+  return null;
+}
+
 const PENDING_STATUSES = new Set(['pending', 'pending_signature']);
 const COMPLETED_STATUSES = new Set(['completed', 'approved']);
 
@@ -72,7 +162,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     const lifetimeAdvanced = sumAmounts(completedRequests);
-    const currentBalance = Math.max(0, lifetimeAdvanced - totalShopPayments);
+    const calculatedBalance = Math.max(0, lifetimeAdvanced - totalShopPayments);
+
+    let liveBalance: number | null = null;
+    if (token && employee.hedera_id) {
+      liveBalance = await fetchLiveTokenBalance(employee.hedera_id, token.tokenId);
+    }
+
+    const currentBalance = liveBalance ?? calculatedBalance;
 
     const stats = {
       totalRequests: requests.length,
@@ -81,6 +178,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       rejectedCount: rejectedRequests.length,
       lifetimeAdvanced,
       currentBalance,
+      liveBalance,
+      calculatedBalance,
       totalShopPayments,
       pendingAmount: sumAmounts(pendingRequests),
       lastRequestAt:
