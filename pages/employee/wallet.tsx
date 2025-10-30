@@ -89,9 +89,8 @@ export default function EmployeeWalletPage() {
     return typeof nameCandidate === 'string' ? nameCandidate : null;
   };
 
-  const availableBalance = overview
-    ? Math.max((overview.stats.lifetimeAdvanced ?? 0) - (overview.stats.pendingAmount ?? 0), 0)
-    : null;
+  const currentBalance = overview?.stats.currentBalance ?? null;
+  const totalSpent = overview?.stats.totalShopPayments ?? null;
 
   const tokenCards = useMemo(
     () => [
@@ -101,17 +100,17 @@ export default function EmployeeWalletPage() {
         helper: 'Approved wage advances delivered to your wallet',
       },
       {
-        label: 'Pending Amount',
-        value: formatAmount(overview?.stats.pendingAmount ?? null),
-        helper: 'Awaiting approval or signature',
+        label: 'Current Balance',
+        value: formatAmount(currentBalance),
+        helper: 'Available balance after shop payments',
       },
       {
-        label: 'Estimated Available',
-        value: formatAmount(availableBalance),
-        helper: 'Lifetime received minus pending amounts',
+        label: 'Total Spent',
+        value: formatAmount(totalSpent),
+        helper: 'Total amount spent at partner shops',
       },
     ],
-    [availableBalance, overview, tokenSymbol]
+    [currentBalance, totalSpent, overview, formatAmount]
   );
 
   return (
@@ -139,6 +138,10 @@ export default function EmployeeWalletPage() {
               <a href="/employee/wallet" className="flex items-center gap-3 px-4 py-2 rounded-lg bg-primary/30 text-primary font-semibold">
                 <WalletIcon className="w-5 h-5" />
                 <span>My Wallet</span>
+              </a>
+              <a href="/employee/pay-shop" className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-300 hover:bg-primary/10">
+                <PayIcon className="w-5 h-5" />
+                <span>Pay Shop</span>
               </a>
             </nav>
             <div className="mt-auto pt-8 text-xs text-gray-500">Connected via HashPack</div>
@@ -362,6 +365,10 @@ function DashboardIcon(props: React.SVGProps<SVGSVGElement>) {
 
 function RequestIcon(props: React.SVGProps<SVGSVGElement>) {
   return <svg viewBox="0 0 24 24" fill="currentColor" {...props}><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" /></svg>;
+}
+
+function PayIcon(props: React.SVGProps<SVGSVGElement>) {
+  return <svg viewBox="0 0 24 24" fill="currentColor" {...props}><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z" /></svg>;
 }
 
 function WalletIcon(props: React.SVGProps<SVGSVGElement>) {

@@ -55,6 +55,14 @@
       "industry": "Id sint temporibus i"
     }
   ],
+  "shops": [
+    {
+      "id": "shop_001",
+      "name": "Grocery Store",
+      "address": "123 Technology Drive, Silicon Valley, CA",
+      "contactEmail": "info@globalsolutions.com"
+    }
+  ],
   "users": [
     {
       "id": "user_001",
@@ -79,8 +87,8 @@
       "name": "Charlie Brown",
       "email": "charlie.brown@globalsolutions.com",
       "role": "CEO",
-      "category": "decider",
-      "entrepriseId": "ent_002",
+      "category": "shop_admin",
+      "shopId": "shop_001",
       "hedera_id": "0.0.6974242"
     },
     {
@@ -265,6 +273,7 @@
       "adminAccountId": "0.0.6606998",
       "feeCollectorAccountId": "0.0.6606998",
       "fractionalFee": 0.005,
+      "swapContractId": "0.0.7146161",
       "createdAt": "2025-10-18T12:00:21.967Z",
       "transactionId": "0.0.6606998@1760788815.462562618",
       "id": "token_1760788821967_s465b56xi",
@@ -1992,17 +2001,17 @@
       "rejectedBy": "user_002"
     },
     {
-      "id": "wage_adv_1761662719135_6l8r0f959",
+      "id": "wage_adv_1761856587427_izj4dt694",
       "employeeId": "user_006",
       "entrepriseId": "ent_002",
       "tokenId": "0.0.7091937",
-      "requestedAmount": 1000,
+      "requestedAmount": 70000,
       "status": "pending_signature",
-      "createdAt": "2025-10-28T14:45:19.135Z",
-      "updatedAt": "2025-10-28T14:45:21.787Z",
-      "scheduledTransactionId": "0.0.7150796",
-      "deleteKey": "302e020100300506032b65700422042091b3b17af71544147c77aed63171c8c1518e02c8d20edec75664ed778df8ca03",
-      "memo": "wage_advance:wage_adv_1761662719135_6l8r0f959",
+      "createdAt": "2025-10-30T20:36:27.427Z",
+      "updatedAt": "2025-10-30T20:36:29.917Z",
+      "scheduledTransactionId": "0.0.7163339",
+      "deleteKey": "302e020100300506032b657004220420bec303322c39d54733b3aafa8b89bf17bf7848121d13c8d10d7f7d2b464e4c1d",
+      "memo": "wage_advance:wage_adv_1761856587427_izj4dt694",
       "deciderApprovals": []
     }
   ]

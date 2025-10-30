@@ -29,6 +29,10 @@ export class JsonDltOperationRepository implements IDltOperationRepository {
     return dataService.getDltOperationsByType(type);
   }
 
+  async findByStatus(status: string): Promise<DltOperation[]> {
+    return dataService.getDltOperationsByStatus(status);
+  }
+
   async findAll(): Promise<DltOperation[]> {
     return dataService.getAllDltOperations();
   }
