@@ -2046,6 +2046,210 @@
       },
       "createdAt": "2025-10-30T01:38:13.644Z",
       "id": "dlt_1761788293644_u527qetox"
+    },
+    {
+      "type": "SHOP_PAYMENT_REQUEST_CREATED",
+      "status": "PENDING",
+      "userId": "user_003",
+      "details": {
+        "id": "payment_req_1761825234159_qcoz1cs6b",
+        "shopAccountId": "0.0.6974242",
+        "shopName": "Charlie Brown",
+        "amount": 500,
+        "memo": "food",
+        "tokenId": "0.0.7102487",
+        "status": "PENDING",
+        "createdAt": "2025-10-30T11:53:54.159Z",
+        "expiresAt": "2025-10-30T12:08:54.159Z"
+      },
+      "createdAt": "2025-10-30T11:53:54.159Z",
+      "id": "payment_req_1761825234159_qcoz1cs6b"
+    },
+    {
+      "type": "SHOP_ACCEPT_TOKEN_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "employeeAccountId": "0.0.7035523",
+        "shopAccountId": "0.0.6974242",
+        "amount": 500,
+        "memo": "food",
+        "decimals": 2,
+        "employeeEnterpriseId": "ent_002"
+      },
+      "createdAt": "2025-10-30T11:55:01.792Z",
+      "id": "dlt_1761825301792_opr9x1lvw"
+    },
+    {
+      "type": "SHOP_ACCEPT_TOKEN_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "employeeAccountId": "0.0.7035523",
+        "shopAccountId": "0.0.6974242",
+        "amount": 200,
+        "decimals": 2,
+        "employeeEnterpriseId": "ent_002"
+      },
+      "createdAt": "2025-10-30T18:46:15.861Z",
+      "id": "dlt_1761849975862_ews383wmz"
+    },
+    {
+      "type": "SHOP_ACCEPT_TOKEN_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "employeeAccountId": "0.0.7035523",
+        "shopAccountId": "0.0.6974242",
+        "amount": 300,
+        "decimals": 2,
+        "employeeEnterpriseId": "ent_002"
+      },
+      "createdAt": "2025-10-30T19:13:09.089Z",
+      "id": "dlt_1761851589089_9yrcsn721"
+    },
+    {
+      "type": "SHOP_ACCEPT_TOKEN_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "employeeAccountId": "0.0.7035523",
+        "shopAccountId": "0.0.6974242",
+        "amount": 100,
+        "decimals": 2,
+        "employeeEnterpriseId": "ent_002"
+      },
+      "createdAt": "2025-10-30T19:14:24.363Z",
+      "id": "dlt_1761851664363_t5juwq35t"
+    },
+    {
+      "type": "SHOP_ACCEPT_TOKEN_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "employeeAccountId": "0.0.7035523",
+        "shopAccountId": "0.0.6974242",
+        "amount": 100,
+        "decimals": 2,
+        "employeeEnterpriseId": "ent_002"
+      },
+      "createdAt": "2025-10-30T19:15:41.243Z",
+      "id": "dlt_1761851741244_vitnyavas"
+    },
+    {
+      "type": "SHOP_ACCEPT_TOKEN_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "employeeAccountId": "0.0.7035523",
+        "shopAccountId": "0.0.6974242",
+        "amount": 100,
+        "decimals": 2,
+        "employeeEnterpriseId": "ent_002"
+      },
+      "createdAt": "2025-10-30T19:21:22.715Z",
+      "id": "dlt_1761852082715_3bxq50101"
+    },
+    {
+      "type": "SHOP_ACCEPT_TOKEN_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "employeeAccountId": "0.0.7035523",
+        "shopAccountId": "0.0.6974242",
+        "amount": 100,
+        "decimals": 2,
+        "employeeEnterpriseId": "ent_002",
+        "transactionId": "0.0.7035523@1761852758.894363621"
+      },
+      "transactionId": "0.0.7035523@1761852758.894363621",
+      "createdAt": "2025-10-30T19:32:45.918Z",
+      "id": "dlt_1761852765918_xxupjm3p6"
+    },
+    {
+      "type": "SHOP_ACCEPT_TOKEN_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "employeeAccountId": "0.0.7035523",
+        "shopAccountId": "0.0.6974242",
+        "amount": 100,
+        "memo": "ters",
+        "decimals": 2,
+        "employeeEnterpriseId": "ent_002",
+        "transactionId": "0.0.7035523@1761856151.174627086"
+      },
+      "transactionId": "0.0.7035523@1761856151.174627086",
+      "createdAt": "2025-10-30T20:29:18.398Z",
+      "id": "dlt_1761856158398_j4p6ln4ue"
+    },
+    {
+      "type": "WAGE_ADVANCE_REQUEST_CREATED",
+      "status": "SUCCESS",
+      "userId": "user_006",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "requestId": "wage_adv_1761856587427_izj4dt694",
+        "requestedAmount": 70000,
+        "employeeName": "Test User Account"
+      },
+      "createdAt": "2025-10-30T20:36:27.429Z",
+      "id": "dlt_1761856587429_mtnhat5n5",
+      "completedAt": "2025-10-30T20:36:27.430Z"
+    },
+    {
+      "type": "SCHEDULED_MINT_CREATED",
+      "status": "SUCCESS",
+      "userId": "user_006",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "requestId": "wage_adv_1761856587427_izj4dt694",
+        "scheduledTransactionId": "0.0.7163339",
+        "amount": 70000,
+        "expirationTime": "2025-11-02T20:36:29.919Z",
+        "requiredSignatures": 2
+      },
+      "createdAt": "2025-10-30T20:36:29.919Z",
+      "id": "dlt_1761856589919_60fyw30df",
+      "transactionId": "0.0.6976406@1761856581.809186610",
+      "completedAt": "2025-10-30T20:36:29.919Z"
+    },
+    {
+      "type": "SHOP_ACCEPT_TOKEN_PREPARED",
+      "status": "PENDING_SIGNATURE",
+      "userId": "user_003",
+      "entrepriseId": "ent_002",
+      "tokenId": "0.0.7091937",
+      "details": {
+        "employeeAccountId": "0.0.7035523",
+        "shopAccountId": "0.0.6974242",
+        "amount": 1200,
+        "memo": "food",
+        "decimals": 2,
+        "employeeEnterpriseId": "ent_002",
+        "transactionId": "0.0.7035523@1761857404.034919959"
+      },
+      "transactionId": "0.0.7035523@1761857404.034919959",
+      "createdAt": "2025-10-30T20:50:11.632Z",
+      "id": "dlt_1761857411632_1ywgo1tcw"
     }
   ],
   "wage_advance_requests": [
@@ -2255,17 +2459,17 @@
       "rejectedBy": "user_002"
     },
     {
-      "id": "wage_adv_1761662719135_6l8r0f959",
+      "id": "wage_adv_1761856587427_izj4dt694",
       "employeeId": "user_006",
       "entrepriseId": "ent_002",
       "tokenId": "0.0.7091937",
-      "requestedAmount": 1000,
+      "requestedAmount": 70000,
       "status": "pending_signature",
-      "createdAt": "2025-10-28T14:45:19.135Z",
-      "updatedAt": "2025-10-28T14:45:21.787Z",
-      "scheduledTransactionId": "0.0.7150796",
-      "deleteKey": "302e020100300506032b65700422042091b3b17af71544147c77aed63171c8c1518e02c8d20edec75664ed778df8ca03",
-      "memo": "wage_advance:wage_adv_1761662719135_6l8r0f959",
+      "createdAt": "2025-10-30T20:36:27.427Z",
+      "updatedAt": "2025-10-30T20:36:29.917Z",
+      "scheduledTransactionId": "0.0.7163339",
+      "deleteKey": "302e020100300506032b657004220420bec303322c39d54733b3aafa8b89bf17bf7848121d13c8d10d7f7d2b464e4c1d",
+      "memo": "wage_advance:wage_adv_1761856587427_izj4dt694",
       "deciderApprovals": []
     }
   ]

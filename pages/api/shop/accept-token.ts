@@ -199,14 +199,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: 'Hedera client not initialized' });
     }
 
+    const generatedTransactionId = TransactionId.generate(AccountId.fromString(employeeAccountId));
+
     const transaction = await new TransferTransaction()
       .addTokenTransfer(tokenId, AccountId.fromString(employeeAccountId), -amount)
       .addTokenTransfer(tokenId, AccountId.fromString(shopAccountId), amount)
-      .setTransactionId(TransactionId.generate(AccountId.fromString(employeeAccountId)))
+      .setTransactionId(generatedTransactionId)
       .setTransactionMemo(memo?.slice(0, 100) || 'Shop purchase settlement')
+      .setTransactionValidDuration(180) // 3 minutes validity
       .freezeWith(client);
 
     const transactionBytes = Buffer.from(transaction.toBytes()).toString('base64');
+    const transactionIdString = generatedTransactionId.toString();
 
     const operation = await dltOpRepo.create({
       type: 'SHOP_ACCEPT_TOKEN_PREPARED',
@@ -221,7 +225,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         memo,
         decimals: enterpriseToken.decimals ?? 2,
         employeeEnterpriseId: employeeUser.entrepriseId,
+        transactionId: transactionIdString,
       },
+      transactionId: transactionIdString,
       createdAt: new Date().toISOString(),
       id: dataService.generateId('dlt'),
     });
@@ -232,6 +238,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       tokenId: enterpriseToken.tokenId,
       decimals: enterpriseToken.decimals,
       operationId: operation.id,
+      transactionId: transactionIdString,
+      tokenSymbol: enterpriseToken.symbol,
     });
   } catch (error: any) {
     console.error('Error preparing shop token acceptance:', error);

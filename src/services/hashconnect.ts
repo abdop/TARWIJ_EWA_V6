@@ -101,11 +101,22 @@ export const executeTransaction = async (
   transaction: any
 ) => {
   const instance = getHashConnectInstance();
-  const result = await instance.sendTransaction(
-    AccountId.fromString(accountIdForSigning),
-    transaction
-  );
-  return result;
+  
+  try {
+    const result = await instance.sendTransaction(
+      AccountId.fromString(accountIdForSigning),
+      transaction
+    );
+    return result;
+  } catch (error: any) {
+    // Check if it's a HashConnect communication error
+    if (error.message?.includes('JSON-RPC') || error.message?.includes('Decoded payload')) {
+      throw new Error(
+        'Wallet connection error. Please disconnect and reconnect your wallet, then try again.'
+      );
+    }
+    throw error;
+  }
 };
 
 export const signMessages = async (
