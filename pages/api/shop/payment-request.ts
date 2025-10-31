@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: requestId,
         shopAccountId,
         shopName: shopUser.name,
-        shopId: shopUser.shopId || shopUser.id,
+        shopId: shopUser.id,
         amount,
         memo: memo || 'Shop purchase',
         status: 'PENDING',

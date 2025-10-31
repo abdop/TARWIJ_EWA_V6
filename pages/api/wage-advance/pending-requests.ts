@@ -31,6 +31,10 @@ export default async function handler(
     if (!decider || decider.category !== 'decider') {
       return res.status(403).json({ error: 'Invalid decider' });
     }
+    
+    if (!decider.entrepriseId) {
+      return res.status(400).json({ error: 'Decider has no enterprise association' });
+    }
 
     // Get all pending requests for the enterprise
     const allRequests = await wageAdvanceRepo.findByEnterprise(decider.entrepriseId);

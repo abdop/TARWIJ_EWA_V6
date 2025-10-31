@@ -152,12 +152,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         dltOperations.map((operation) => ({
           id: operation.id,
           type: operation.type,
-          amount: operation.details?.requestedAmount || operation.details?.amount || null,
+          amount: operation.details?.requestedAmount || operation.details?.amount || 0,
           from: operation.details?.from || null,
           to: operation.details?.to || null,
-          status: operation.status,
+          status: operation.status as "pending" | "pending_signature" | "approved" | "rejected" | "completed",
           timestamp: operation.createdAt,
-          employeeName: operation.details?.employeeName || null,
+          employeeName: operation.details?.employeeName || "Unknown",
         }))
       )
       .sort((a, b) => new Date(b.timestamp || "").getTime() - new Date(a.timestamp || "").getTime())

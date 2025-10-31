@@ -69,6 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const usersByEnterprise = new Map<string, typeof users>();
     users.forEach((user) => {
+      if (!user.entrepriseId) return;
       const collection = usersByEnterprise.get(user.entrepriseId) ?? [];
       collection.push(user);
       usersByEnterprise.set(user.entrepriseId, collection);
@@ -76,6 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const wageByEnterprise = new Map<string, typeof wageRequests>();
     wageRequests.forEach((request) => {
+      if (!request.entrepriseId) return;
       const collection = wageByEnterprise.get(request.entrepriseId) ?? [];
       collection.push(request);
       wageByEnterprise.set(request.entrepriseId, collection);

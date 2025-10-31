@@ -274,31 +274,36 @@ export default function EntAdminDashboard() {
                         No recent activity recorded.
                       </li>
                     )}
-                    {recentActivity.map((activity) => (
-                      <li key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-background-dark/40 transition-all">
-                        <div
-                          className={`mt-1 h-2 w-2 rounded-full ${
-                            activity.status === 'SUCCESS'
-                              ? 'bg-green-500'
-                              : activity.status === 'FAILED'
-                              ? 'bg-red-500'
-                              : 'bg-blue-500'
-                          }`}
-                        />
-                        <div className="flex-1">
-                          <p className="text-sm text-gray-300">
-                            <span className="text-white font-semibold">{activity.type.replace(/_/g, ' ')}</span>
-                          </p>
-                          <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-gray-500">
-                            <span>{new Date(activity.createdAt).toLocaleString()}</span>
-                            {activity.details?.employeeName && <span>• {activity.details.employeeName}</span>}
-                            {activity.details?.requestedAmount && (
-                              <span>• {formatNumber(Number(activity.details.requestedAmount))} WAT</span>
-                            )}
+                    {recentActivity.map((activity) => {
+                      const employeeName = activity.details?.employeeName as string | undefined;
+                      const requestedAmount = activity.details?.requestedAmount as number | undefined;
+                      
+                      return (
+                        <li key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-background-dark/40 transition-all">
+                          <div
+                            className={`mt-1 h-2 w-2 rounded-full ${
+                              activity.status === 'SUCCESS'
+                                ? 'bg-green-500'
+                                : activity.status === 'FAILED'
+                                ? 'bg-red-500'
+                                : 'bg-blue-500'
+                            }`}
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm text-gray-300">
+                              <span className="text-white font-semibold">{activity.type.replace(/_/g, ' ')}</span>
+                            </p>
+                            <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-gray-500">
+                              <span>{new Date(activity.createdAt).toLocaleString()}</span>
+                              {employeeName && <span>• {employeeName}</span>}
+                              {requestedAmount && (
+                                <span>• {formatNumber(Number(requestedAmount))} WAT</span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </li>
-                    ))}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               </section>

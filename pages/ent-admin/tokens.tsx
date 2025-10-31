@@ -42,6 +42,7 @@ export default function TokensPage() {
     data: overview,
     loading: overviewLoading,
     error: overviewError,
+    refresh: refreshOverview,
   } = useEnterpriseOverview(enterpriseId, {
     enabled: Boolean(enterpriseId),
     refreshIntervalMs: 60000,
@@ -274,7 +275,7 @@ export default function TokensPage() {
                                     {tx.to && <span>To: {tx.to}</span>}
                                   </div>
                                   <p className="text-xs text-gray-500 mt-1">
-                                    {new Date(tx.timestamp).toLocaleString()}
+                                    {tx.timestamp ? new Date(tx.timestamp).toLocaleString() : 'N/A'}
                                   </p>
                                 </div>
                               </div>

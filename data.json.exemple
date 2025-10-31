@@ -1,0 +1,18 @@
+{
+  "entreprises": [],
+  "shops": [],
+  "users": [
+     {
+      "id": "user_001",
+      "name": "Platform Admin",
+      "email": "platform.admin@tarwij.ma",
+      "role": "platform_admin",
+      "category": "platform_admin",
+      "entrepriseId": "ent_trwj",
+      "hedera_id": "0.0.7035607"
+    }
+  ],
+  "entreprise_tokens": [],
+  "dlt_operations": [],
+  "wage_advance_requests": []
+}
