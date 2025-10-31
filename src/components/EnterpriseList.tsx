@@ -79,7 +79,7 @@ export default function EnterpriseList() {
       <div className="bg-background-light/20 border border-gray-700/70 rounded-xl p-8 text-center">
         <p className="text-gray-200 text-base font-medium">No enterprises found</p>
         <p className="text-sm text-gray-400 mt-2">
-          Click "Add New Enterprise" to create your first enterprise
+          Click &quot;Add New Enterprise&quot; to create your first enterprise
         </p>
       </div>
     );

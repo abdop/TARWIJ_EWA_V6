@@ -165,7 +165,7 @@ export default function DeciderApprovalSuccessModal({
                   {result.isFullyApproved ? (
                     <>
                       <li>• The mint will execute automatically now that all signatures are collected</li>
-                      <li>• Tokens will be transferred to the employee's wallet</li>
+                      <li>• Tokens will be transferred to the employee&apos;s wallet</li>
                     </>
                   ) : (
                     <>

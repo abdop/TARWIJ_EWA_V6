@@ -132,7 +132,7 @@ export default function WageAdvanceSuccessModal({
                 <ul className="text-xs text-gray-300 space-y-1">
                   <li>• Deciders will be notified to review your request</li>
                   <li>• Once approved, the scheduled mint will execute automatically</li>
-                  <li>• You'll receive tokens directly to your wallet</li>
+                  <li>• You&apos;ll receive tokens directly to your wallet</li>
                   <li>• Track your request status on the dashboard</li>
                 </ul>
               </div>

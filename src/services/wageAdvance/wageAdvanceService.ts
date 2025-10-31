@@ -62,6 +62,10 @@ export class WageAdvanceService {
       throw new Error("Only employees can request wage advances");
     }
 
+    if (!employee.entrepriseId) {
+      throw new Error("Employee must be associated with an enterprise");
+    }
+
     // Check for pending requests
     const pendingRequests = await wageAdvanceRepo.findPendingByEmployee(
       input.employeeId
@@ -72,8 +76,8 @@ export class WageAdvanceService {
       );
     }
 
-    // Get enterprise token
-    const token = await tokenRepo.findByEnterpriseId(employee.entrepriseId);
+    // Get enterprise token (entrepriseId is validated above)
+    const token = await tokenRepo.findByEnterpriseId(employee.entrepriseId!);
     if (!token) {
       throw new Error(`No token found for enterprise ${employee.entrepriseId}`);
     }
@@ -82,7 +86,7 @@ export class WageAdvanceService {
     const request: WageAdvanceRequest = {
       id: dataService.generateId("wage_adv"),
       employeeId: input.employeeId,
-      entrepriseId: employee.entrepriseId,
+      entrepriseId: employee.entrepriseId!,
       tokenId: token.tokenId,
       requestedAmount: input.requestedAmount,
       status: "pending",

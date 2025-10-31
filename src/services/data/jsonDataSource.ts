@@ -22,7 +22,7 @@ export class JsonDataSource<T extends { id: string }> implements IDataSource<T> 
       await fs.access(this.dataPath);
       const fileContent = await fs.readFile(this.dataPath, 'utf-8');
       this.data = JSON.parse(fileContent) || {};
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'ENOENT') {
         // File doesn't exist, create it with empty data
         await this.saveData();
@@ -38,7 +38,7 @@ export class JsonDataSource<T extends { id: string }> implements IDataSource<T> 
   private async saveData(): Promise<void> {
     try {
       await fs.writeFile(this.dataPath, JSON.stringify(this.data, null, 2), 'utf-8');
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error saving data to ${this.fileName}:`, error);
       throw new Error(`Failed to save data: ${error.message}`);
     }

@@ -10,12 +10,15 @@ export class HederaAccountService {
   public static async getAccountBalance(accountId: string): Promise<number> {
     try {
       const client = hederaClient.getClient();
+      if (!client) {
+        throw new Error('Hedera client not initialized');
+      }
       const query = new AccountInfoQuery()
         .setAccountId(accountId);
       
       const accountInfo = await query.execute(client);
       return Number(accountInfo.balance.toTinybars());
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting account balance:', error);
       throw new Error(`Failed to get account balance: ${error.message}`);
     }
@@ -37,6 +40,9 @@ export class HederaAccountService {
   ): Promise<string> {
     try {
       const client = hederaClient.getClient();
+      if (!client) {
+        throw new Error('Hedera client not initialized');
+      }
       const privateKey = PrivateKey.fromString(fromPrivateKey);
       
       const transaction = await new TransferTransaction()
@@ -49,7 +55,7 @@ export class HederaAccountService {
       const receipt = await response.getReceipt(client);
       
       return response.transactionId.toString();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error transferring hbar:', error);
       throw new Error(`Failed to transfer hbar: ${error.message}`);
     }
@@ -63,6 +69,9 @@ export class HederaAccountService {
   public static async getAccountInfo(accountId: string) {
     try {
       const client = hederaClient.getClient();
+      if (!client) {
+        throw new Error('Hedera client not initialized');
+      }
       const query = new AccountInfoQuery()
         .setAccountId(accountId);
       
@@ -73,13 +82,13 @@ export class HederaAccountService {
         balance: accountInfo.balance.toString(),
         isDeleted: accountInfo.isDeleted,
         key: accountInfo.key.toString(),
-        receiverSignatureRequired: accountInfo.receiverSignatureRequired,
+        receiverSignatureRequired: (accountInfo as any).isReceiverSignatureRequired || false,
         expirationTime: accountInfo.expirationTime,
         autoRenewPeriod: accountInfo.autoRenewPeriod.toString(),
-        alias: accountInfo.alias ? accountInfo.alias.toString() : null,
+        alias: (accountInfo as any).alias ? (accountInfo as any).alias.toString() : null,
         ethereumNonce: accountInfo.ethereumNonce?.toString()
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting account info:', error);
       throw new Error(`Failed to get account info: ${error.message}`);
     }

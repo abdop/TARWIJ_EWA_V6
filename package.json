@@ -7,6 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
+    "tslint": "tsc --noEmit",
     "test:token": "tsx tests/createEnterpriseToken.test.ts",
     "test:pause": "tsx tests/pauseToken.test.ts",
     "test:unpause": "tsx tests/unpauseToken.test.ts",
