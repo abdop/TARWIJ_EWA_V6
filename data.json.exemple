@@ -10,6 +10,14 @@
       "category": "platform_admin",
       "entrepriseId": "ent_trwj",
       "hedera_id": "0.0.7035607"
+    },
+    {
+      "id": "user_002",
+      "name": "Shop Admin",
+      "role": "shop_admin",
+      "category": "shop_admin",
+      "shopId": "shop_001",
+      "hedera_id": "0.0.XXXXXXX"
     }
   ],
   "entreprise_tokens": [],

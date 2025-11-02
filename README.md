@@ -478,7 +478,7 @@ PLATFORM_STABLECOIN_DECIMALS=2
 PLATFORM_STABLECOIN_TOKEN_ID=0.0.XXXXXX
 ```
 
-5. copy data.json.example to data.json and edit it with the account that will be used as the platform admin.
+5. copy data.json.example to data.json and edit it with the account that will be used as the platform admin (do not use the operator account) and the shop admin account.
 
 ```json
 "users": [
@@ -487,6 +487,16 @@ PLATFORM_STABLECOIN_TOKEN_ID=0.0.XXXXXX
     "role": "platform_admin",
     "category": "platform_admin",
     "hedera_id": "0.0.XXXXXX"
+    ....
+},
+{
+    ....
+    {
+      "role": "shop_admin",
+      "category": "shop_admin",
+      "shopId": "shop_001",
+      "hedera_id": "0.0.XXXXXXX"
+    },
     ....
 }
 ]
@@ -498,39 +508,28 @@ PLATFORM_STABLECOIN_TOKEN_ID=0.0.XXXXXX
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser.
+Open [http://localhost:3000](http://localhost:3000) with your browser. connect using hashpack wallet anad the platform admin account, this will open the platform admin dashboard.
 
-this
+### Platform Testing functionality scenario
 
-## Project Structure
+1. Create a new enterprise: go to `Enterprises` at [http://localhost:3000/platform-admin/enterprises](http://localhost:3000/platform-admin/enterprises) tab and click on `Add Enterprise` button
+   - fill the enterprise and the enterprise token information
+   - fill the enterprise admin account information with it's hedera account id
+   - fill the deciders informations with hedera account ids (at least two)
+     **This will create the enterise token in Hedera Token Service and set the deciders keys as the keylist used for the token supply key with, and create a swap smart contract that will swap the stablecoin for the enterise token when the enterprise admin makes a settlement**
+2. Create a new employee: go to `Employees` tab at [http://localhost:3000/platform-admin/employees](http://localhost:3000/platform-admin/employees) and click on `Add Employee` button
 
-```
-src/
-├── repositories/                   # Data access abstraction layer
-│   ├── IEnterpriseRepository.ts
-│   ├── IUserRepository.ts
-│   ├── IEnterpriseTokenRepository.ts
-│   ├── IDltOperationRepository.ts
-│   ├── RepositoryFactory.ts        # Factory for repository instances
-│   └── implementations/
-│       ├── JsonEnterpriseRepository.ts
-│       ├── JsonUserRepository.ts
-│       ├── JsonEnterpriseTokenRepository.ts
-│       └── JsonDltOperationRepository.ts
-├── services/
-│   ├── data/
-│   │   └── dataService.ts          # Data management with data.json
-│   └── hedera/
-│       ├── client.ts               # Hedera client configuration
-│       ├── keyManagement.ts        # Key generation and management
-│       └── enterpriseToken.ts      # Enterprise token operations
-├── examples/
-│   └── createTokenExample.ts       # Usage examples
-└── app/
-    └── page.tsx                    # Next.js home page
-tests/
-└── createEnterpriseToken.test.ts   # Token creation test
-```
+   - fill the employee information with hedera account id
+
+3. Connect using hashpack as an employee, go to `wage advance request` tab at [http://localhost:3000/employee/request](http://localhost:3000/employee/request) and submit a wage advance request.
+   **_This will create a schedule mint transaction in Hedera that will need all the deciders to sign it before the HTS will execute the mint transaction_**
+
+4. Connect using hashpack as a decider, on the `dashboard` tab approve the wage advance request.
+   **_This will sign the schedule mint transaction in Hedera_**
+   when all the deciders sign the schedule mint transaction, the HTS will execute the mint transaction and the tokens will be minted and transfered to the employee account.
+
+5. Now that the employee had tokens on their wallet, they could pay any affiliated shop accepting this tokens. go to `Pay Shop` tab at [http://localhost:3000/employee/pay-shop](http://localhost:3000/employee/pay-shop) enter the shop account id, the ammount and click on `Pay Now` button
+6. the shop now receive payment and when the settlemrnt occur, the platform will send cashin functionalities in hedera stablecoin studio to send stablecoin to the enterprise swap smart contract (each enterprise has its own swap smart contract). Now the shop could use the swap function in the swap smart contract to swap the stablecoin for the enterprise token. go to `Swap` tab at [http://localhost:3000/shop-admin/swap](http://localhost:3000/shop-admin/swap) and choose the token to swap, this will call the swap smart contract that will check if he has enough stablecoin and then wipe the caller account enterprise token, and them transfer the same amount on stablecoin to the caller shop account.
 
 ## Key Features
 
