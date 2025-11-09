@@ -268,7 +268,7 @@ TARWIJ's choice of Hedera Hashgraph delivers **2,545x cost savings** compared to
 - **Custom Fractional Fees**: Configurable transaction fees
 - **Wallet Authentication**: Hedera account authentication, no custodian.
 
-# Diagram and Workflow
+# Diagrams and Workflows
 
 ### Create Enterprise Token
 
@@ -306,24 +306,27 @@ graph LR
     subgraph HTS[" HTS (Hedera Token Service) "]
        T7
     end
-classDef startNode fill:#e1f5ff
-classDef rejectNode fill:#f8d7da
-classDef successNode fill:#d4edda
-classDef employeeZone fill:#ffe6f0,stroke:#E91E63,stroke-width:3px
-classDef backendZone fill:#e6f3ff,stroke:#4169E1,stroke-width:3px
-classDef deciderZone fill:#fff0e6,stroke:#FF8C00,stroke-width:3px
-classDef hederaZone fill:#e6ffe6,stroke:#32CD32,stroke-width:3px
 
-class T1 startNode
-class T11 successNode
-class PlatformUI employeeZone
-class Backend backendZone
-class HSCS-1,HSCS-2 deciderZone
-class HTS hederaZone
+    classDef startNode fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    classDef successNode fill:#27AE60,stroke:#1E8449,stroke-width:2px,color:#fff
+    classDef employeeZone fill:#E91E63,stroke:#AD1457,stroke-width:3px,color:#fff
+    classDef backendZone fill:#2196F3,stroke:#1565C0,stroke-width:3px,color:#fff
+    classDef deciderZone fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#000
+    classDef hederaZone fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff
+    classDef normalNode fill:#34495E,stroke:#2C3E50,stroke-width:2px,color:#fff
 
+    class T1 startNode
+    class T11 successNode
+    class T2,T5,T6,T8,T9,T10 normalNode
+    class PlatformUI employeeZone
+    class Backend backendZone
+    class HSCS-1,HSCS-2 deciderZone
+    class HTS hederaZone
 ```
 
-### Wage advance workflow
+---
+
+### Wage Advance Workflow
 
 ```mermaid
 graph LR
@@ -362,25 +365,30 @@ graph LR
         W10
     end
 
-    classDef startNode fill:#e1f5ff
-    classDef rejectNode fill:#f8d7da
-    classDef successNode fill:#d4edda
-    classDef employeeZone fill:#ffe6f0,stroke:#E91E63,stroke-width:3px
-    classDef backendZone fill:#e6f3ff,stroke:#4169E1,stroke-width:3px
-    classDef deciderZone fill:#fff0e6,stroke:#FF8C00,stroke-width:3px
-    classDef hederaZone fill:#e6ffe6,stroke:#32CD32,stroke-width:3px
+    classDef startNode fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    classDef rejectNode fill:#E74C3C,stroke:#C0392B,stroke-width:2px,color:#fff
+    classDef successNode fill:#27AE60,stroke:#1E8449,stroke-width:2px,color:#fff
+    classDef employeeZone fill:#E91E63,stroke:#AD1457,stroke-width:3px,color:#fff
+    classDef backendZone fill:#2196F3,stroke:#1565C0,stroke-width:3px,color:#fff
+    classDef deciderZone fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#000
+    classDef hederaZone fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff
+    classDef normalNode fill:#34495E,stroke:#2C3E50,stroke-width:2px,color:#fff
+    classDef decisionNode fill:#9B59B6,stroke:#6C3483,stroke-width:2px,color:#fff
 
     class W1 startNode
     class W11 rejectNode
     class W12 successNode
+    class W2,W3,W4,W6,W7,W9,W10 normalNode
+    class W5,W8 decisionNode
     class EmployeeUI employeeZone
     class Backend1,Backend2 backendZone
     class DeciderUI deciderZone
     class HTS1 hederaZone
-
 ```
 
-### Settlement and enterprise token swap workflow
+---
+
+### Settlement and Enterprise Token Swap Workflow
 
 ```mermaid
 graph LR
@@ -402,6 +410,7 @@ graph LR
     end
 
     subgraph HSS[" HSS (Hedera Stablecoin Studio) "]
+        direction TB
         S4
         S5
         S6
@@ -418,21 +427,21 @@ graph LR
         S11
     end
 
-    classDef startNode fill:#e1f5ff
-    classDef warningNode fill:#fff3cd
-    classDef successNode fill:#d4edda
-    classDef platformZone fill:#f0e6ff,stroke:#9370DB,stroke-width:3px
-    classDef stablecoinZone fill:#ffe6e6,stroke:#DC143C,stroke-width:3px
-    classDef backendZone fill:#e6f3ff,stroke:#4169E1,stroke-width:3px
-    classDef shopZone fill:#e6fff0,stroke:#20B2AA,stroke-width:3px
-    classDef contractZone fill:#fff0e6,stroke:#FF8C00,stroke-width:3px
+    classDef startNode fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    classDef warningNode fill:#F39C12,stroke:#D68910,stroke-width:2px,color:#000
+    classDef successNode fill:#27AE60,stroke:#1E8449,stroke-width:2px,color:#fff
+    classDef platformZone fill:#9B59B6,stroke:#6C3483,stroke-width:3px,color:#fff
+    classDef stablecoinZone fill:#E74C3C,stroke:#C0392B,stroke-width:3px,color:#fff
+    classDef shopZone fill:#16A085,stroke:#138D75,stroke-width:3px,color:#fff
+    classDef contractZone fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#000
+    classDef normalNode fill:#34495E,stroke:#2C3E50,stroke-width:2px,color:#fff
 
-    class S1 startNode
+    class S2 startNode
     class S7 warningNode
     class S12 successNode
+    class S3,S4,S5,S6,S8,S9,S10,S11 normalNode
     class PlatformUI platformZone
     class HSS stablecoinZone
-    class Backend backendZone
     class ShopUI shopZone
     class HSCS contractZone
 ```
@@ -505,8 +514,104 @@ flowchart LR
     BETMS --> HCL
     BETMS --> HTS
     BETMS --> HSCS
+```
 
+### High level diagram Detailed Version
 
+```mermaid
+flowchart TB
+    %% STYLES
+    classDef zone fill:#eaf2fb,stroke:#3e6db5,stroke-width:2px,color:#0b315e;
+    classDef service fill:#ffffff,stroke:#3e6db5,stroke-width:1.5px,color:#0b315e;
+    classDef external fill:#f3eaff,stroke:#7b4de2,stroke-width:2px,color:#3a226b;
+    classDef data fill:#fff5d6,stroke:#d8a300,stroke-width:2px,color:#6b4e00;
+
+    %% FRONTEND
+    subgraph FE[FRONTEND]
+        FEAPP[Nextjs Application <br>React TypeScript <br>Redux]:::service
+        FEDASH[User App<br>- Platform Admin<br>- Enterprise Admin<br>- Decider<br>- Employee<br>- Shop]:::service
+    end
+    class FE zone
+
+    %% HASHCONNECT BRIDGE
+    subgraph HC[HashConnect]
+        HCSVC[HashConnect Service<br>Socket IO Connection]:::service
+    end
+
+    %% BACKEND
+    subgraph BE[BACKEND]
+        BEAPI[API Routes]:::service
+        subgraph BES[Business Services]
+            BETMS[Enterprise Token Management Service]:::service
+            BEWA[Wage Advance Service]:::service
+            BSP[Shop Payment Service]:::service
+        end
+    end
+    class BE zone
+
+    %% DATA
+    subgraph DATAZONE[DATA]
+        DB[Persistent Storage]:::data
+    end
+    class DATAZONE data
+
+    %% HEDERA SERVICES
+    subgraph HED[HEDERA]
+        HCL[Hedera Network Mainnet/Testnet]:::external
+        HSCS[Hedera Smart Contract Service]:::external
+        HTS[Hedera Token Service]:::external
+        HMS[Hedera Mirror Node]:::external
+        HSS[Hedera Stablecoin Studio]:::external
+    end
+    class HED external
+
+    %% FLOWS
+    FEDASH --> FEAPP
+
+    FEAPP --> BEAPI
+    FEAPP --> HCSVC
+
+    %% HashConnect Wallet Interactions
+    HCSVC -->|Wallet Auth<br>Sign Transactions| HCL
+    HCL -->|Account Info<br>Transaction Status| HCSVC
+
+    BEAPI --> BETMS
+    BEAPI --> BEWA
+    BEAPI --> BSP
+
+    %% Enterprise Token Management Service Flows
+    BETMS -->|TokenCreateTransaction<br>TokenUpdateTransaction<br>TokenPauseTransaction<br>TokenFreezeTransaction<br>TokenWipeTransaction| HTS
+    BETMS -->|ContractCreateFlow<br>ContractExecuteTransaction| HSCS
+    BETMS -->|Query Contract State| HSCS
+    HTS -->|Token ID<br>Transaction Receipt<br>Token Status| BETMS
+    HSCS -->|Contract ID<br>Execution Receipt| BETMS
+    BETMS --> DB
+
+    %% Wage Advance Service Flows
+    BEWA -->|TokenAssociateTransaction<br>TokenMintTransaction<br>TransferTransaction<br>ScheduleCreateTransaction<br>ScheduleSignTransaction<br>ScheduleDeleteTransaction| HTS
+    BEWA -->|ScheduleInfoQuery| HCL
+    HTS -->|Association Receipt<br>Mint Receipt<br>Transfer Receipt<br>Schedule ID<br>Schedule Status| BEWA
+    HCL -->|Schedule Execution Status<br>Signature Count| BEWA
+    BEWA --> DB
+
+    %% Shop Payment Service Flows
+    BSP -->|TokenAssociateTransaction<br>TransferTransaction<br>Query Token Balance| HTS
+    BSP -->|Prepare Swap<br>Execute Swap| HSCS
+    HTS -->|Payment Receipt<br>Token Balance<br>Association Status| BSP
+    HSCS -->|Swap Receipt<br>Exchange Rate| BSP
+    BSP --> DB
+
+    %% Mirror Node Queries (Read-only)
+    BETMS -.->|Query Transaction History<br>Query Token Info| HMS
+    BEWA -.->|Query Account Balance<br>Query Transaction Status| HMS
+    BSP -.->|Query Payment History<br>Query Token Transfers| HMS
+    HMS -.->|Transaction Records<br>Account Balances<br>Token Metadata| BETMS
+    HMS -.->|Transaction History<br>Balance Updates| BEWA
+    HMS -.->|Payment Records<br>Transfer History| BSP
+
+    %% Stablecoin Studio Integration
+    BETMS -.->|Configure Stablecoin<br>Mint/Burn Requests| HSS
+    HSS -.->|Stablecoin Token ID<br>Compliance Status| BETMS
 ```
 
 # Local Development Setup
